@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Clipper",
+    "slug": "clipper",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "clipper",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.leonardo.clipper"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-share-intent"
+    ],
+    "android": {
+      "package": "com.leonardo.clipper"
+    }
+  }
+}
