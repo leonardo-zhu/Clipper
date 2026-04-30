@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, View, Text, TouchableOpacity, StyleSheet, RefreshControl, Alert } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useArticlesStore } from '@/src/store/articles';
 import type { Article, ArticleStatus } from '@/src/db/schema';
 
@@ -49,6 +50,7 @@ function ArticleRow({ article, onPress }: { article: Article; onPress: () => voi
 
 export default function FeedScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { articles, loaded, loadArticles, removeFailedArticles } = useArticlesStore();
   const [filter, setFilter] = useState<'all' | 'processing' | 'done' | 'error'>('all');
 
@@ -96,7 +98,7 @@ export default function FeedScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.hero}>
+      <View style={[styles.hero, { paddingTop: insets.top + 10 }]}>
         <View style={styles.heroGlowA} />
         <View style={styles.heroGlowB} />
         <Text style={styles.heroTitle}>Clipper</Text>

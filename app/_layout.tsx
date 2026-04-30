@@ -29,8 +29,15 @@ export default function RootLayout() {
           headerBackTitle: '返回',
         }}
       >
-        <Stack.Screen name="index" options={{ title: 'Clipper' }} />
-        <Stack.Screen name="article/[id]" options={{ title: '文章详情' }} />
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="article/[id]"
+          options={{
+            title: '文章详情',
+            headerBackButtonDisplayMode: 'minimal',
+            headerShadowVisible: false,
+          }}
+        />
         <Stack.Screen name="storage" options={{ title: '存储管理' }} />
       </Stack>
     </>
