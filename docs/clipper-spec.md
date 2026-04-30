@@ -209,9 +209,11 @@ processUrl → DB write → notify() → store.loadArticles() → React re-rende
 ### Detail (`app/article/[id].tsx`)
 
 - **WebView 渲染**：标题、摘要、正文、操作按钮全部内嵌在 HTML 中
+- 视觉风格贴近公众号阅读：白底标题区 + 来源时间 + 正文自然流排版
 - WebView 自己处理滚动，CSS 加了 `-webkit-overflow-scrolling: touch` 和硬件加速
 - 操作按钮通过 `postMessage` 与 RN 通信（"打开原文" / "删除"）
 - 处理中状态每 2 秒轮询 DB 更新
+- 顶部导航由原生 header 承担（返回使用 minimal 样式），避免与内容区重复占位
 
 ### Share Extension
 
@@ -242,6 +244,7 @@ processUrl → DB write → notify() → store.loadArticles() → React re-rende
 - 项目从 `WeChatClipper` 完整更名为 `Clipper`
 - iOS 工程名、bundle id、scheme、app group 已切换至 `clipper` 命名
 - 文章详情页滚动性能做了参数与渲染层优化
+- 文章详情 UI 调整为公众号阅读风格，去掉大面积蓝色 Hero
 - “打开原文”从直接浏览器改为优先尝试唤起微信
 - App 图标已去除外层白边视觉
 
