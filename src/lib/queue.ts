@@ -17,27 +17,36 @@ function notify() {
 
 export function processUrl(url: string) {
   const id = uuid();
-  insertArticle({ id, url, status: 'pending', created_at: Date.now() });
+  insertArticle({ id, url, status: 'queued', created_at: Date.now() });
   notify();
-  runNext(id);
+  runIngestion(id);
+  return id;
 }
 
-async function runNext(id: string) {
+async function runIngestion(id: string) {
   try {
-    updateArticle(id, { status: 'fetching' });
+    updateArticle(id, { status: 'ingesting', summarising_progress: 0 });
     notify();
-    const { title, body, source } = await scrapeWxArticle(getArticle(id)!.url);
-    updateArticle(id, { title, body, source, status: 'summarising' });
-    notify();
+    const current = getArticle(id);
+    if (!current) throw new Error('任务不存在');
 
-    try {
-      const summary = await generateSummary(body);
-      updateArticle(id, { summary, status: 'done' });
-      notify();
-    } catch {
-      updateArticle(id, { summary: '摘要生成失败，正文已保存', status: 'error' });
-      notify();
-    }
+    const { title, description, body, source, profileSignature, msgCdnUrl, coverUrl1x1, lang } =
+      await scrapeWxArticle(current.url);
+
+    updateArticle(id, {
+      title,
+      description,
+      body,
+      source,
+      profile_signature: profileSignature,
+      msg_cdn_url: msgCdnUrl,
+      cover_url_1_1: coverUrl1x1,
+      lang,
+      status: 'ingested',
+      ingested_at: Date.now(),
+    });
+    notify();
+    void runSummarisation(id);
   } catch (e: any) {
     const msg = e.message ?? '未知错误';
     if (msg.includes('HTTP')) {
@@ -45,6 +54,26 @@ async function runNext(id: string) {
     } else {
       updateArticle(id, { status: 'error', summary: msg });
     }
+    notify();
+  }
+}
+
+async function runSummarisation(id: string) {
+  updateArticle(id, { status: 'summarising', summarising_progress: 20 });
+  notify();
+
+  try {
+    const current = getArticle(id);
+    if (!current?.body) throw new Error('正文为空，无法生成摘要');
+
+    updateArticle(id, { summarising_progress: 55 });
+    notify();
+
+    const summary = await generateSummary(current.body);
+    updateArticle(id, { summary, status: 'done', summarising_progress: 100 });
+    notify();
+  } catch (e: any) {
+    updateArticle(id, { summary: e?.message ?? '摘要生成失败，正文已保存', status: 'error' });
     notify();
   }
 }
