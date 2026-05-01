@@ -1,11 +1,12 @@
 import { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useShareIntent } from 'expo-share-intent';
 import { processUrl } from '@/src/lib/queue';
 import { getDB } from '@/src/db';
 
 export default function RootLayout() {
+  const router = useRouter();
   const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntent();
 
   useEffect(() => {
@@ -14,10 +15,11 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (hasShareIntent && shareIntent?.webUrl) {
-      processUrl(shareIntent.webUrl);
+      const id = processUrl(shareIntent.webUrl);
+      router.push(`/ingestion/${id}`);
       resetShareIntent();
     }
-  }, [hasShareIntent]);
+  }, [hasShareIntent, shareIntent?.webUrl, router, resetShareIntent]);
 
   return (
     <>
@@ -30,6 +32,8 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="ingestion/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="library" options={{ title: 'Library' }} />
         <Stack.Screen
           name="article/[id]"
           options={{

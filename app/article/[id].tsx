@@ -55,13 +55,14 @@ export default function ArticleDetailScreen() {
       </section>`
     : '';
 
-  const statusBlock = article && (article.status === 'pending' || article.status === 'fetching' || article.status === 'summarising')
+  const statusBlock = article && (article.status === 'queued' || article.status === 'ingesting' || article.status === 'ingested' || article.status === 'summarising')
     ? `<section class="panel panel-status">
         <div class="panel-title">处理中</div>
         <div class="panel-content">
-          ${article.status === 'fetching' ? '正在抓取文章...' : ''}
+          ${article.status === 'ingesting' ? '正在抓取文章...' : ''}
           ${article.status === 'summarising' ? '正在生成摘要...' : ''}
-          ${article.status === 'pending' ? '等待处理...' : ''}
+          ${article.status === 'queued' ? '等待处理...' : ''}
+          ${article.status === 'ingested' ? '抓取已完成，摘要处理中...' : ''}
         </div>
       </section>`
     : '';
@@ -109,6 +110,7 @@ export default function ArticleDetailScreen() {
     flex-wrap: wrap;
   }
   .main { padding: 14px 16px 0; display: grid; gap: 12px; }
+  .cover { width: 100%; height: auto; border-radius: 10px; }
   .panel {
     border-radius: 10px;
     padding: 12px;
@@ -177,6 +179,8 @@ export default function ArticleDetailScreen() {
   </header>
 
   <main class="main">
+    ${article.msg_cdn_url ? `<img class="cover" src="${article.msg_cdn_url}" />` : ''}
+    ${article.description ? `<section class="panel"><div class="panel-title">Description</div><div class="panel-content">${article.description}</div></section>` : ''}
     ${summaryBlock}
     ${errorBlock}
     ${statusBlock}
