@@ -5,7 +5,39 @@ const WX_HEADERS = {
   'Accept-Language': 'zh-CN,zh;q=0.9',
 };
 
-export async function scrapeWxArticle(url: string): Promise<{ title: string; body: string; source: string }> {
+interface ScrapedArticle {
+  title: string;
+  description: string;
+  body: string;
+  source: string;
+  profileSignature: string;
+  msgCdnUrl: string;
+  coverUrl1x1: string;
+  lang: string;
+}
+
+function decodeHtml(str: string): string {
+  return str
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .trim();
+}
+
+function extractJsString(html: string, variableName: string): string {
+  const escaped = variableName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = html.match(new RegExp(`var\\s+${escaped}\\s*=\\s*\"([\\s\\S]*?)\";`));
+  return match?.[1]?.trim() ?? '';
+}
+
+function inferLang(title: string, description: string): string {
+  const text = `${title} ${description}`;
+  return /[\u4e00-\u9fff]/.test(text) ? 'zh-CN' : 'en-US';
+}
+
+export async function scrapeWxArticle(url: string): Promise<ScrapedArticle> {
   const res = await fetch(url, { headers: WX_HEADERS });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
@@ -14,7 +46,7 @@ export async function scrapeWxArticle(url: string): Promise<{ title: string; bod
   // Extract title — class may have trailing space: "rich_media_title "
   const titleMatch = html.match(/<h1[^>]*class="rich_media_title\s*"[^>]*>([\s\S]*?)<\/h1>/);
   const title = titleMatch
-    ? titleMatch[1].replace(/<[^>]+>/g, '').trim()
+    ? decodeHtml(titleMatch[1].replace(/<[^>]+>/g, ''))
     : 'Untitled';
 
   // Extract body HTML — WeChat stores article in id="js_content"
@@ -67,8 +99,17 @@ export async function scrapeWxArticle(url: string): Promise<{ title: string; bod
   // Extract source (公众号名称)
   const sourceMatch = html.match(/id="js_name"[^>]*>([\s\S]*?)<\/a>/);
   const source = sourceMatch
-    ? sourceMatch[1].replace(/<[^>]+>/g, '').trim()
+    ? decodeHtml(sourceMatch[1].replace(/<[^>]+>/g, ''))
     : new URL(url).hostname;
 
-  return { title, body, source };
+  const profileSignature = decodeHtml(extractJsString(html, 'profile_signature'));
+  const msgCdnUrl = extractJsString(html, 'msg_cdn_url');
+  const coverUrl1x1 = extractJsString(html, 'cdn_url_1_1');
+
+  const metaDescription =
+    html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([\s\S]*?)["'][^>]*>/i)?.[1] ?? '';
+  const description = decodeHtml(profileSignature || metaDescription || title);
+  const lang = inferLang(title, description);
+
+  return { title, description, body, source, profileSignature, msgCdnUrl, coverUrl1x1, lang };
 }

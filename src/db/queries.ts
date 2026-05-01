@@ -5,11 +5,30 @@ export function insertArticle(article: { id: string; url: string; status?: Artic
   const db = getDB();
   db.executeSync(
     'INSERT INTO articles (id, url, status, created_at) VALUES (?, ?, ?, ?)',
-    [article.id, article.url, article.status ?? 'pending', article.created_at ?? Date.now()],
+    [article.id, article.url, article.status ?? 'queued', article.created_at ?? Date.now()],
   );
 }
 
-export function updateArticle(id: string, fields: Partial<Pick<Article, 'title' | 'body' | 'summary' | 'source' | 'status'>>) {
+export function updateArticle(
+  id: string,
+  fields: Partial<
+    Pick<
+      Article,
+      | 'title'
+      | 'description'
+      | 'body'
+      | 'summary'
+      | 'source'
+      | 'profile_signature'
+      | 'msg_cdn_url'
+      | 'cover_url_1_1'
+      | 'lang'
+      | 'ingested_at'
+      | 'summarising_progress'
+      | 'status'
+    >
+  >,
+) {
   const db = getDB();
   const sets: string[] = [];
   const values: (string | number | null)[] = [];
