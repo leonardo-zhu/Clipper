@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
@@ -16,7 +15,6 @@ type ExportSnapshot = {
 };
 
 export default function StorageScreen() {
-  const { import: importFlag } = useLocalSearchParams<{ import?: string }>();
   const { loadArticles } = useArticlesStore();
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -72,6 +70,9 @@ export default function StorageScreen() {
         copyToCacheDirectory: true,
       });
       if (picked.canceled) return;
+      if (!picked.assets?.length) {
+        throw new Error('未选择文件或文件不可读取');
+      }
 
       const asset = picked.assets[0];
       const raw = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.UTF8 });
@@ -127,12 +128,6 @@ export default function StorageScreen() {
       setImporting(false);
     }
   }, [loadArticles]);
-
-  useEffect(() => {
-    if (importFlag === '1') {
-      void importSnapshot();
-    }
-  }, [importFlag, importSnapshot]);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
