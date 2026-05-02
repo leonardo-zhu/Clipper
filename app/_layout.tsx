@@ -2,11 +2,25 @@ import { useEffect } from 'react';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useShareIntent } from 'expo-share-intent';
+import { useFonts } from 'expo-font';
+import { DMSerifDisplay_400Regular } from '@expo-google-fonts/dm-serif-display';
+import { Sora_400Regular, Sora_600SemiBold } from '@expo-google-fonts/sora';
+import { DMMono_500Medium } from '@expo-google-fonts/dm-mono';
+import { NotoSansSC_400Regular, NotoSansSC_700Bold } from '@expo-google-fonts/noto-sans-sc';
 import { processUrl } from '@/src/lib/queue';
 import { getDB } from '@/src/db';
+import { View, ActivityIndicator } from 'react-native';
 
 export default function RootLayout() {
   const router = useRouter();
+  const [fontsLoaded] = useFonts({
+    DMSerifDisplay_400Regular,
+    Sora_400Regular,
+    Sora_600SemiBold,
+    DMMono_500Medium,
+    NotoSansSC_400Regular,
+    NotoSansSC_700Bold,
+  });
   const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntent();
 
   useEffect(() => {
@@ -20,6 +34,14 @@ export default function RootLayout() {
       resetShareIntent();
     }
   }, [hasShareIntent, shareIntent?.webUrl, router, resetShareIntent]);
+
+  if (!fontsLoaded) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f9faf7' }}>
+        <ActivityIndicator color="#45655b" />
+      </View>
+    );
+  }
 
   return (
     <>
