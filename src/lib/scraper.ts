@@ -125,7 +125,7 @@ export async function scrapeWxArticle(url: string): Promise<ScrapedArticle> {
 
   const profileSignature = decodeHtml(extractJsString(html, 'profile_signature'));
   const msgCdnUrl = extractJsString(html, 'msg_cdn_url');
-  const coverUrl1x1 = extractJsString(html, 'cover_url_1_1') || extractJsString(html, 'cdn_url_1_1');
+  const coverUrl1x1 = extractJsString(html, 'cdn_url_1_1');
 
   // description priority:
   // 1) <meta name="description" content="...">

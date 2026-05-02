@@ -10,6 +10,11 @@ export function normalizeStatus(status: string): ArticleStatus {
 }
 
 export function normalizeImportRow(row: Partial<Article>) {
+  const legacyRow = row as Partial<Article> & { cdn_url_1_1?: unknown };
+  const coverUrl1x1 =
+    row.cover_url_1_1 ??
+    (typeof legacyRow.cdn_url_1_1 === 'string' ? legacyRow.cdn_url_1_1 : null);
+
   return {
     title: row.title ?? null,
     description: row.description ?? null,
@@ -18,7 +23,7 @@ export function normalizeImportRow(row: Partial<Article>) {
     source: row.source ?? null,
     profile_signature: row.profile_signature ?? null,
     msg_cdn_url: row.msg_cdn_url ?? null,
-    cover_url_1_1: row.cover_url_1_1 ?? null,
+    cover_url_1_1: coverUrl1x1,
     tags_json: row.tags_json ?? null,
     lang: row.lang ?? null,
     ingested_at: row.ingested_at ?? null,
