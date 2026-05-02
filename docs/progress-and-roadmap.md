@@ -43,3 +43,28 @@ pnpm analyze /path/to/clipper-snapshot.json
 2. `pnpm analyze` 增加 `--top`（大正文文章排行）
 3. 可选：导出时拆分为 `metadata + body` 两个文件，减少单文件体积
 4. 导入后增加“缺失元数据补全任务”（description / msg_cdn_url / cover_url_1_1）
+
+## 本轮更新（2026-05-02，Round 2 UI）
+
+### 已完成
+- Home 页面视觉重绘：
+  - 统一品牌头部样式（标题 + 副标题 + 操作按钮）
+  - 卡片层级、阴影、间距和进度条样式优化
+  - 空状态与 FAB 冲突处理：空状态时显示主 CTA；有数据时显示悬浮 `+`
+- Home `+` 弹层优化：
+  - 两条入口清晰分离：`粘贴微信链接` / `导入 Snapshot JSON`
+  - 链接输入态与按钮文案优化（“开始抓取”）
+- Library 页面视觉对齐：
+  - 明确 `Collection` 使用 1:1 图（`cover_url_1_1`）
+  - 字体、卡片边框、阴影、信息层次与 Home 保持一致
+- Storage 页面 UI 重绘：
+  - 导入、导出、命令区改为统一信息卡结构
+  - 导入/导出按钮状态（进行中）视觉明确
+
+### 验证
+- `pnpm typecheck` 已通过
+
+### 下一步（Round 3）
+1. 导入流程内联化：不离开 Home 也能直接完成文件导入（可选）
+2. 标签管理：预设基础标签 + AI 标签并存策略与 UI 展示
+3. Ingestion / Summarising 阶段动效继续贴近设计稿（进度与状态反馈细化）
