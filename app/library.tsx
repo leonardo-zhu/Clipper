@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   filterChipActive: { backgroundColor: '#0f3b31', borderColor: '#0f3b31' },
-  filterChipText: { fontSize: 11, color: '#29433c', fontFamily: fontFamily.chinese, textAlign: 'center' },
+  filterChipText: { fontSize: 11, lineHeight: 14, color: '#29433c', fontFamily: fontFamily.chinese, textAlign: 'center', includeFontPadding: false },
   filterChipTextActive: { color: '#fff' },
   list: { paddingHorizontal: 16, paddingBottom: 120, gap: 12 },
   collectionCard: {
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   collectionDesc: { fontSize: 13, color: '#3e4a45', lineHeight: 19, fontFamily: fontFamily.chinese },
   tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 2 },
   tagPill: { backgroundColor: '#eef3ef', borderRadius: 999, paddingHorizontal: 8, minHeight: 24, borderWidth: 1, borderColor: '#d7e1db', alignItems: 'center', justifyContent: 'center' },
-  tagText: { fontSize: 10, color: '#315449', fontFamily: fontFamily.chinese, textAlign: 'center' },
+  tagText: { fontSize: 10, lineHeight: 12, color: '#315449', fontFamily: fontFamily.chinese, textAlign: 'center', includeFontPadding: false },
   tagPillAi: { backgroundColor: '#f5efe6', borderRadius: 999, paddingHorizontal: 8, minHeight: 24, borderWidth: 1, borderColor: '#e6d5bf', alignItems: 'center', justifyContent: 'center' },
-  tagTextAi: { fontSize: 10, color: '#7a5a32', fontFamily: fontFamily.chinese, textAlign: 'center' },
+  tagTextAi: { fontSize: 10, lineHeight: 12, color: '#7a5a32', fontFamily: fontFamily.chinese, textAlign: 'center', includeFontPadding: false },
 });
