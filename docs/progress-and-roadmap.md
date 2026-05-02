@@ -64,6 +64,20 @@ pnpm analyze /path/to/clipper-snapshot.json
 ### 验证
 - `pnpm typecheck` 已通过
 
+## 本轮更新（2026-05-02，Round 9 i18n Boundary）
+
+### 已完成
+- 新增 UI 文案 i18n key（中英）：
+  - Home 导入弹层、空状态、错误/完成提示
+  - Library/Storage 顶部导航文案
+  - 详情页标签编辑区文案
+- 保持边界：
+  - 仅 UI 文案做 i18n
+  - 文章内容字段（title/description/body）不参与翻译
+
+### 验证
+- `pnpm typecheck` 已通过
+
 ## 本轮更新（2026-05-02，Round 8 Parsing Fallback）
 
 ### 已完成

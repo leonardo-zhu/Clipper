@@ -5,6 +5,7 @@ import { useArticlesStore } from '@/src/store/articles';
 import type { Article } from '@/src/db/schema';
 import { fontFamily } from '@/src/theme/typography';
 import { BASE_TAGS, parseTags, splitTags } from '@/src/lib/tags';
+import { t } from '@/src/i18n';
 
 function CollectionCard({ item, onPress }: { item: Article; onPress: () => void }) {
   const imageUri = item.cover_url_1_1 || item.msg_cdn_url || '';
@@ -58,11 +59,11 @@ export default function LibraryScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.heading}>Library</Text>
+          <Text style={styles.heading}>{t('nav.library')}</Text>
           <Text style={styles.sub}>Collection View (1:1 Cover)</Text>
         </View>
         <TouchableOpacity style={styles.storageBtn} onPress={() => router.push('/storage')}>
-          <Text style={styles.storageBtnText}>Storage</Text>
+          <Text style={styles.storageBtnText}>{t('nav.storage')}</Text>
         </TouchableOpacity>
       </View>
       <FlatList

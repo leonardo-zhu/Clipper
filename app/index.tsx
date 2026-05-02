@@ -77,7 +77,7 @@ export default function HomeScreen() {
   const confirmLinkImport = useCallback(() => {
     const url = link.trim();
     if (!url.startsWith('http')) {
-      Alert.alert('链接无效', '请粘贴完整的 http(s) 链接');
+      Alert.alert(t('alert.invalidLinkTitle'), t('alert.invalidLinkMessage'));
       return;
     }
     const id = processUrl(url);
@@ -153,9 +153,9 @@ export default function HomeScreen() {
 
       loadArticles();
       closeAddMenu();
-      Alert.alert('导入完成', `新增 ${inserted} 篇，更新 ${updated} 篇，跳过 ${skipped} 条`);
+      Alert.alert(t('alert.importDoneTitle'), `新增 ${inserted} 篇，更新 ${updated} 篇，跳过 ${skipped} 条`);
     } catch (err: any) {
-      Alert.alert('导入失败', err?.message ?? '未知错误');
+      Alert.alert(t('alert.importFailTitle'), err?.message ?? '未知错误');
     } finally {
       setImporting(false);
     }
@@ -172,10 +172,10 @@ export default function HomeScreen() {
         </View>
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.outlineBtn} onPress={() => router.push('/library')}>
-            <Text style={styles.outlineBtnText}>Library</Text>
+            <Text style={styles.outlineBtnText}>{t('nav.library')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.filledBtn} onPress={() => router.push('/storage')}>
-            <Text style={styles.filledBtnText}>Storage</Text>
+            <Text style={styles.filledBtnText}>{t('nav.storage')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -210,12 +210,12 @@ export default function HomeScreen() {
             <View style={styles.emptyIconCircle}>
               <AppIcon name="auto_stories" size={48} color="#709186" />
             </View>
-            <Text style={styles.emptyTitle}>Your library is empty</Text>
-            <Text style={styles.emptyHint}>Start by sharing from WeChat, or import an exported snapshot file.</Text>
+            <Text style={styles.emptyTitle}>{t('home.emptyTitle')}</Text>
+            <Text style={styles.emptyHint}>{t('home.emptyHint')}</Text>
             <TouchableOpacity style={styles.emptyCta} onPress={openAddMenu} activeOpacity={0.9}>
               <View style={styles.emptyCtaInner}>
                 <AppIcon name="add_circle" size={20} color="#ffffff" />
-                <Text style={styles.emptyCtaText}>Add Your First Article</Text>
+                <Text style={styles.emptyCtaText}>{t('home.addFirst')}</Text>
               </View>
             </TouchableOpacity>
           </View>
@@ -231,8 +231,8 @@ export default function HomeScreen() {
       <Modal visible={showAddSheet} transparent animationType="fade" onRequestClose={closeAddMenu}>
         <Pressable style={styles.sheetMask} onPress={closeAddMenu}>
           <Pressable style={styles.sheetCard} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.sheetTitle}>添加内容</Text>
-            <Text style={styles.sheetSub}>选择导入方式</Text>
+            <Text style={styles.sheetTitle}>{t('home.addContent')}</Text>
+            <Text style={styles.sheetSub}>{t('home.chooseImport')}</Text>
 
             {showLinkInput ? (
               <>
@@ -245,7 +245,7 @@ export default function HomeScreen() {
                   style={styles.linkInput}
                 />
                 <TouchableOpacity style={styles.sheetActionPrimary} onPress={confirmLinkImport}>
-                  <Text style={styles.sheetActionPrimaryText}>开始抓取</Text>
+                  <Text style={styles.sheetActionPrimaryText}>{t('home.startCrawl')}</Text>
                 </TouchableOpacity>
               </>
             ) : (
@@ -253,7 +253,7 @@ export default function HomeScreen() {
                 <TouchableOpacity style={styles.sheetAction} onPress={() => setShowLinkInput(true)}>
                   <View style={styles.sheetActionInner}>
                     <AppIcon name="bookmarks" size={18} color="#1a3029" />
-                    <Text style={styles.sheetActionText}>粘贴微信链接</Text>
+                    <Text style={styles.sheetActionText}>{t('home.pasteWechatUrl')}</Text>
                   </View>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -263,14 +263,14 @@ export default function HomeScreen() {
                 >
                   <View style={styles.sheetActionInner}>
                     <AppIcon name="download" size={18} color="#1a3029" />
-                    <Text style={styles.sheetActionText}>{importing ? '导入中...' : '导入 Snapshot JSON'}</Text>
+                    <Text style={styles.sheetActionText}>{importing ? t('home.importing') : t('home.importSnapshot')}</Text>
                   </View>
                 </TouchableOpacity>
               </>
             )}
 
             <TouchableOpacity style={styles.sheetCancel} onPress={closeAddMenu}>
-              <Text style={styles.sheetCancelText}>取消</Text>
+              <Text style={styles.sheetCancelText}>{t('home.cancel')}</Text>
             </TouchableOpacity>
           </Pressable>
         </Pressable>
