@@ -69,3 +69,16 @@ export function splitTags(tags: string[]): { base: string[]; ai: string[] } {
   }
   return { base, ai };
 }
+
+export function topTagsFromTagSets(tagSets: string[][], limit = 8): string[] {
+  const count = new Map<string, number>();
+  for (const tags of tagSets) {
+    for (const tag of tags) {
+      count.set(tag, (count.get(tag) ?? 0) + 1);
+    }
+  }
+  return Array.from(count.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(([tag]) => tag)
+    .slice(0, limit);
+}
