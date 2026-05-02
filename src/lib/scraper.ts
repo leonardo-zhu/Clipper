@@ -23,6 +23,7 @@ function decodeHtml(str: string): string {
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
+    .replace(/\\x26quot;/g, '"')
     .trim();
 }
 
@@ -30,6 +31,11 @@ function extractJsString(html: string, variableName: string): string {
   const escaped = variableName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const match = html.match(new RegExp(`var\\s+${escaped}\\s*=\\s*\"([\\s\\S]*?)\";`));
   return match?.[1]?.trim() ?? '';
+}
+
+function extractMsgTitle(html: string): string {
+  const match = html.match(/var\s+msg_title\s*=\s*'([\s\S]*?)'\.html\(false\);/);
+  return decodeHtml(match?.[1] ?? '');
 }
 
 function inferLang(title: string, description: string): string {
@@ -43,11 +49,13 @@ export async function scrapeWxArticle(url: string): Promise<ScrapedArticle> {
 
   const html = await res.text();
 
-  // Extract title — class may have trailing space: "rich_media_title "
+  // Extract title:
+  // 1) var msg_title = '...'.html(false)
+  // 2) fallback to H1 rich_media_title
+  const jsTitle = extractMsgTitle(html);
   const titleMatch = html.match(/<h1[^>]*class="rich_media_title\s*"[^>]*>([\s\S]*?)<\/h1>/);
-  const title = titleMatch
-    ? decodeHtml(titleMatch[1].replace(/<[^>]+>/g, ''))
-    : 'Untitled';
+  const h1Title = titleMatch ? decodeHtml(titleMatch[1].replace(/<[^>]+>/g, '')) : '';
+  const title = jsTitle || h1Title || 'Untitled';
 
   // Extract body HTML — WeChat stores article in id="js_content"
   // Use div nesting counter to find the correct closing tag
@@ -106,9 +114,13 @@ export async function scrapeWxArticle(url: string): Promise<ScrapedArticle> {
   const msgCdnUrl = extractJsString(html, 'msg_cdn_url');
   const coverUrl1x1 = extractJsString(html, 'cdn_url_1_1');
 
+  // description priority:
+  // 1) <meta name="description" content="...">
+  // 2) profile_signature
+  // 3) title
   const metaDescription =
     html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([\s\S]*?)["'][^>]*>/i)?.[1] ?? '';
-  const description = decodeHtml(profileSignature || metaDescription || title);
+  const description = decodeHtml(metaDescription || profileSignature || title);
   const lang = inferLang(title, description);
 
   return { title, description, body, source, profileSignature, msgCdnUrl, coverUrl1x1, lang };

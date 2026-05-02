@@ -64,6 +64,20 @@ pnpm analyze /path/to/clipper-snapshot.json
 ### 验证
 - `pnpm typecheck` 已通过
 
+## 本轮更新（2026-05-02，Round 5 Parsing + Tag Fit）
+
+### 已完成
+- 微信文章抓取字段修正：
+  - title 优先取 `var msg_title = '...'.html(false);`
+  - description 优先取 `<meta name="description" ...>`
+  - 保留 `h1.rich_media_title` 作为 fallback
+- 标签样式继续收紧：
+  - 筛选 chip 固定高度与垂直居中
+  - 标签 pill 收紧并统一中英文可读性
+
+### 验证
+- `pnpm typecheck` 已通过
+
 ## 本轮更新（2026-05-02，Round 4 Tags）
 
 ### 已完成
