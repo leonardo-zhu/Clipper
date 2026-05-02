@@ -20,6 +20,13 @@
 - 新增 Mac 分析脚本：`scripts/analyze.js`
 - 新增命令：`pnpm analyze <snapshot.json>`
 
+### V2 数据迁移能力（2026-05-02）
+- 首页 `+` 按钮扩展为双入口：手动粘贴微信链接 / 导入 Snapshot JSON
+- Storage 页面新增“导入 JSON 文件”能力（读取历史导出快照）
+- 导入逻辑支持按 URL 去重更新（已存在则更新，不重复入库）
+- 历史状态自动兼容映射：`pending -> queued`、`fetching -> ingesting`
+- 导入完成后返回新增/更新/跳过统计结果
+
 ## 当前推荐流程（真机）
 
 1. App 中进入“导出与存储”
@@ -35,3 +42,4 @@ pnpm analyze /path/to/clipper-snapshot.json
 1. 导出格式增加版本号字段（兼容后续 schema 演进）
 2. `pnpm analyze` 增加 `--top`（大正文文章排行）
 3. 可选：导出时拆分为 `metadata + body` 两个文件，减少单文件体积
+4. 导入后增加“缺失元数据补全任务”（description / msg_cdn_url / cover_url_1_1）

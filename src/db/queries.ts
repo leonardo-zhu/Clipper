@@ -56,6 +56,12 @@ export function getAllArticles(): Article[] {
   return (result.rows as unknown as Article[]) ?? [];
 }
 
+export function getArticleByUrl(url: string): Article | null {
+  const db = getDB();
+  const result = db.executeSync('SELECT * FROM articles WHERE url = ? LIMIT 1', [url]);
+  return (result.rows?.[0] as unknown as Article) ?? null;
+}
+
 export function getArticlesByStatus(status: ArticleStatus): Article[] {
   const db = getDB();
   const result = db.executeSync('SELECT * FROM articles WHERE status = ? ORDER BY created_at DESC', [status]);

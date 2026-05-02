@@ -1,9 +1,10 @@
 import { useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, RefreshControl, Alert } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useArticlesStore } from '@/src/store/articles';
 import type { Article } from '@/src/db/schema';
 import { t } from '@/src/i18n';
+import { processUrl } from '@/src/lib/queue';
 
 function HomeCard({ item, onPress }: { item: Article; onPress: () => void }) {
   const isSummarising = item.status === 'summarising';
@@ -38,6 +39,41 @@ export default function HomeScreen() {
     }, [loadArticles]),
   );
 
+  const showAddMenu = useCallback(() => {
+    Alert.alert('添加内容', '请选择添加方式', [
+      { text: '取消', style: 'cancel' },
+      {
+        text: '粘贴微信链接',
+        onPress: () => {
+          Alert.prompt(
+            '粘贴微信链接',
+            '输入公众号文章链接',
+            [
+              { text: '取消', style: 'cancel' },
+              {
+                text: '导入',
+                onPress: (value?: string) => {
+                  const url = (value ?? '').trim();
+                  if (!url.startsWith('http')) {
+                    Alert.alert('链接无效', '请粘贴完整的 http(s) 链接');
+                    return;
+                  }
+                  const id = processUrl(url);
+                  router.push(`/ingestion/${id}`);
+                },
+              },
+            ],
+            'plain-text',
+          );
+        },
+      },
+      {
+        text: '导入 Snapshot JSON',
+        onPress: () => router.push('/storage?import=1'),
+      },
+    ]);
+  }, [router]);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -54,6 +90,9 @@ export default function HomeScreen() {
         contentContainerStyle={styles.list}
         renderItem={({ item }) => <HomeCard item={item} onPress={() => router.push(`/article/${item.id}`)} />}
       />
+      <TouchableOpacity style={styles.fab} onPress={showAddMenu} activeOpacity={0.9}>
+        <Text style={styles.fabText}>+</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -74,5 +113,20 @@ const styles = StyleSheet.create({
   progressLabel: { color: '#45655b', fontSize: 13, fontWeight: '600' },
   progressTrack: { width: '100%', height: 4, backgroundColor: '#dbe4de', borderRadius: 999 },
   progressFill: { height: '100%', backgroundColor: '#45655b', borderRadius: 999 },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 30,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#45655b',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+  },
+  fabText: { color: '#fff', fontSize: 34, lineHeight: 36, marginTop: -2 },
 });
-
