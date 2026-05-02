@@ -5,9 +5,10 @@ import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import { getAllArticles, getArticleByUrl, insertArticle, updateArticle } from '@/src/db/queries';
 import { useArticlesStore } from '@/src/store/articles';
-import type { Article, ArticleStatus } from '@/src/db/schema';
+import type { Article } from '@/src/db/schema';
 import { fontFamily } from '@/src/theme/typography';
 import { t } from '@/src/i18n';
+import { normalizeImportRow, resolveImportId } from '@/src/lib/importer';
 
 type ExportSnapshot = {
   app: 'Clipper';
@@ -52,15 +53,6 @@ export default function StorageScreen() {
     }
   }, []);
 
-  const normalizeStatus = (status: string): ArticleStatus => {
-    if (status === 'pending') return 'queued';
-    if (status === 'fetching') return 'ingesting';
-    if (status === 'queued' || status === 'ingesting' || status === 'ingested' || status === 'summarising' || status === 'done' || status === 'error') {
-      return status;
-    }
-    return 'queued';
-  };
-
   const importSnapshot = useCallback(async () => {
     try {
       setImporting(true);
@@ -89,27 +81,13 @@ export default function StorageScreen() {
           continue;
         }
         const existed = getArticleByUrl(row.url);
-        const patch = {
-          title: row.title ?? null,
-          description: row.description ?? null,
-          body: row.body ?? null,
-          summary: row.summary ?? null,
-          source: row.source ?? null,
-          profile_signature: row.profile_signature ?? null,
-          msg_cdn_url: row.msg_cdn_url ?? null,
-          cover_url_1_1: row.cover_url_1_1 ?? null,
-          tags_json: row.tags_json ?? null,
-          lang: row.lang ?? null,
-          ingested_at: row.ingested_at ?? null,
-          summarising_progress: typeof row.summarising_progress === 'number' ? row.summarising_progress : 0,
-          status: normalizeStatus((row.status as string) ?? 'queued'),
-        } as const;
+        const patch = normalizeImportRow(row);
 
         if (existed) {
           updateArticle(existed.id, patch);
           updated++;
         } else {
-          const id = row.id && typeof row.id === 'string' ? row.id : `import-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+          const id = resolveImportId(row);
           insertArticle({
             id,
             url: row.url,

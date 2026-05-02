@@ -26,6 +26,10 @@ function normalize(text: string): string {
   return text.replace(/\s+/g, ' ').trim();
 }
 
+function canonicalTag(tag: string): string {
+  return normalize(tag).toLowerCase();
+}
+
 export function generateBaseTags(input: { title?: string | null; description?: string | null; source?: string | null }): string[] {
   const text = normalize(`${input.title ?? ''} ${input.description ?? ''} ${input.source ?? ''}`);
   if (!text) return [];
@@ -45,19 +49,39 @@ export function parseTags(tagsJson: string | null | undefined): string[] {
   try {
     const arr = JSON.parse(tagsJson);
     if (!Array.isArray(arr)) return [];
-    return arr.filter((v) => typeof v === 'string').map((v) => v.trim()).filter(Boolean);
+    const dedup = new Map<string, string>();
+    for (const raw of arr) {
+      if (typeof raw !== 'string') continue;
+      const cleaned = normalize(raw);
+      if (!cleaned) continue;
+      const key = canonicalTag(cleaned);
+      if (!dedup.has(key)) dedup.set(key, cleaned);
+    }
+    return Array.from(dedup.values());
   } catch {
     return [];
   }
 }
 
 export function encodeTags(tags: string[]): string {
-  const unique = Array.from(new Set(tags.map((t) => t.trim()).filter(Boolean)));
+  const dedup = new Map<string, string>();
+  for (const raw of tags) {
+    const cleaned = normalize(raw);
+    if (!cleaned) continue;
+    const key = canonicalTag(cleaned);
+    if (!dedup.has(key)) dedup.set(key, cleaned);
+  }
+  const unique = Array.from(dedup.values());
   return JSON.stringify(unique);
 }
 
 export function isBaseTag(tag: string): boolean {
-  return BASE_TAG_SET.has(tag);
+  if (BASE_TAG_SET.has(tag)) return true;
+  const canonical = canonicalTag(tag);
+  for (const item of BASE_TAG_SET) {
+    if (canonicalTag(item) === canonical) return true;
+  }
+  return false;
 }
 
 export function splitTags(tags: string[]): { base: string[]; ai: string[] } {
@@ -71,14 +95,22 @@ export function splitTags(tags: string[]): { base: string[]; ai: string[] } {
 }
 
 export function topTagsFromTagSets(tagSets: string[][], limit = 8): string[] {
-  const count = new Map<string, number>();
+  const count = new Map<string, { value: string; hit: number }>();
   for (const tags of tagSets) {
     for (const tag of tags) {
-      count.set(tag, (count.get(tag) ?? 0) + 1);
+      const cleaned = normalize(tag);
+      if (!cleaned) continue;
+      const key = canonicalTag(cleaned);
+      const current = count.get(key);
+      if (current) {
+        current.hit += 1;
+      } else {
+        count.set(key, { value: cleaned, hit: 1 });
+      }
     }
   }
-  return Array.from(count.entries())
-    .sort((a, b) => b[1] - a[1])
-    .map(([tag]) => tag)
+  return Array.from(count.values())
+    .sort((a, b) => b.hit - a.hit)
+    .map((item) => item.value)
     .slice(0, limit);
 }

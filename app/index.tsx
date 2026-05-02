@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, RefreshContr
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useArticlesStore } from '@/src/store/articles';
 import type { Article } from '@/src/db/schema';
-import type { ArticleStatus } from '@/src/db/schema';
 import { t } from '@/src/i18n';
 import { processUrl } from '@/src/lib/queue';
 import { AppIcon } from '@/src/components/AppIcon';
@@ -12,6 +11,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { getArticleByUrl, insertArticle, updateArticle } from '@/src/db/queries';
 import { BASE_TAGS, parseTags, splitTags } from '@/src/lib/tags';
+import { normalizeImportRow, resolveImportId } from '@/src/lib/importer';
 
 function HomeCard({ item, onPress }: { item: Article; onPress: () => void }) {
   const isSummarising = item.status === 'summarising';
@@ -85,15 +85,6 @@ export default function HomeScreen() {
     router.push(`/ingestion/${id}`);
   }, [closeAddMenu, link, router]);
 
-  const normalizeStatus = (status: string): ArticleStatus => {
-    if (status === 'pending') return 'queued';
-    if (status === 'fetching') return 'ingesting';
-    if (status === 'queued' || status === 'ingesting' || status === 'ingested' || status === 'summarising' || status === 'done' || status === 'error') {
-      return status;
-    }
-    return 'queued';
-  };
-
   const importSnapshot = useCallback(async () => {
     try {
       setImporting(true);
@@ -119,27 +110,13 @@ export default function HomeScreen() {
           continue;
         }
         const existed = getArticleByUrl(row.url);
-        const patch = {
-          title: row.title ?? null,
-          description: row.description ?? null,
-          body: row.body ?? null,
-          summary: row.summary ?? null,
-          source: row.source ?? null,
-          profile_signature: row.profile_signature ?? null,
-          msg_cdn_url: row.msg_cdn_url ?? null,
-          cover_url_1_1: row.cover_url_1_1 ?? null,
-          tags_json: row.tags_json ?? null,
-          lang: row.lang ?? null,
-          ingested_at: row.ingested_at ?? null,
-          summarising_progress: typeof row.summarising_progress === 'number' ? row.summarising_progress : 0,
-          status: normalizeStatus((row.status as string) ?? 'queued'),
-        } as const;
+        const patch = normalizeImportRow(row);
 
         if (existed) {
           updateArticle(existed.id, patch);
           updated++;
         } else {
-          const id = row.id && typeof row.id === 'string' ? row.id : `import-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+          const id = resolveImportId(row);
           insertArticle({
             id,
             url: row.url,
