@@ -1,7 +1,7 @@
 export const BASE_TAGS = [
-  'Travel',
-  'Hotel',
-  'Flight',
+  '目的地',
+  '酒店',
+  '机票',
   '攻略',
   '签证',
   '美食',
@@ -12,9 +12,9 @@ export const BASE_TAGS = [
 const BASE_TAG_SET = new Set<string>(BASE_TAGS);
 
 const KEYWORDS: Array<{ tag: string; patterns: RegExp[] }> = [
-  { tag: 'Travel', patterns: [/travel/i, /trip/i, /tour/i, /旅游/] },
-  { tag: 'Hotel', patterns: [/hotel/i, /resort/i, /民宿/, /酒店/] },
-  { tag: 'Flight', patterns: [/flight/i, /airline/i, /机票/, /航班/] },
+  { tag: '目的地', patterns: [/travel/i, /trip/i, /tour/i, /旅游/, /城市/, /目的地/] },
+  { tag: '酒店', patterns: [/hotel/i, /resort/i, /民宿/, /酒店/, /住宿/] },
+  { tag: '机票', patterns: [/flight/i, /airline/i, /机票/, /航班/] },
   { tag: '攻略', patterns: [/攻略/, /guide/i, /plan/i] },
   { tag: '签证', patterns: [/签证/, /visa/i] },
   { tag: '美食', patterns: [/美食/, /food/i, /餐厅/, /restaurant/i] },
