@@ -64,6 +64,18 @@ pnpm analyze /path/to/clipper-snapshot.json
 ### 验证
 - `pnpm typecheck` 已通过
 
+## 本轮更新（2026-05-02，Round 6 Tag Editing）
+
+### 已完成
+- 详情页新增标签编辑区：
+  - 展示当前标签（基础标签 / AI 标签分色）
+  - 点击标签可移除
+  - 支持手动新增标签（输入 + 提交）
+- 标签修改直接写回 `tags_json` 并即时刷新页面状态
+
+### 验证
+- `pnpm typecheck` 已通过
+
 ## 本轮更新（2026-05-02，Round 5 Parsing + Tag Fit）
 
 ### 已完成

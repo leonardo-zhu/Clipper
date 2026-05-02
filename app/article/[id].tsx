@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet, Alert, Linking } from 'react-native';
+import { View, StyleSheet, Alert, Linking, Text, TouchableOpacity, TextInput } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { WebView } from 'react-native-webview';
 import { useArticlesStore } from '@/src/store/articles';
 import type { Article } from '@/src/db/schema';
+import { parseTags, splitTags, encodeTags } from '@/src/lib/tags';
+import { updateArticle } from '@/src/db/queries';
+import { fontFamily } from '@/src/theme/typography';
 
 export default function ArticleDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { refreshArticle, removeArticle } = useArticlesStore();
   const [article, setArticle] = useState<Article | null>(null);
+  const [tagInput, setTagInput] = useState('');
 
   useEffect(() => {
     if (id) {
@@ -40,6 +44,31 @@ export default function ArticleDetailScreen() {
     }
     Alert.alert('无法打开链接');
   }, []);
+
+  const tags = useMemo(() => parseTags(article?.tags_json), [article?.tags_json]);
+  const { base: baseTags, ai: aiTags } = useMemo(() => splitTags(tags), [tags]);
+
+  const saveTags = useCallback((nextTags: string[]) => {
+    if (!article) return;
+    updateArticle(article.id, { tags_json: encodeTags(nextTags) });
+    const updated = refreshArticle(article.id);
+    if (updated) setArticle(updated);
+  }, [article, refreshArticle]);
+
+  const addTag = useCallback(() => {
+    const next = tagInput.trim();
+    if (!next) return;
+    if (tags.includes(next)) {
+      setTagInput('');
+      return;
+    }
+    saveTags([...tags, next]);
+    setTagInput('');
+  }, [saveTags, tagInput, tags]);
+
+  const removeTag = useCallback((tag: string) => {
+    saveTags(tags.filter((t) => t !== tag));
+  }, [saveTags, tags]);
 
   const summaryBlock = article?.status === 'done' && article.summary
     ? `<section class="panel panel-summary">
@@ -214,6 +243,34 @@ export default function ArticleDetailScreen() {
 
   return (
     <View style={styles.container}>
+      <View style={styles.tagPanel}>
+        <Text style={styles.tagTitle}>Tags</Text>
+        <View style={styles.tagRow}>
+          {baseTags.map((tag) => (
+            <TouchableOpacity key={`base-${tag}`} style={styles.tagPill} onPress={() => removeTag(tag)}>
+              <Text style={styles.tagText}>{tag} ×</Text>
+            </TouchableOpacity>
+          ))}
+          {aiTags.map((tag) => (
+            <TouchableOpacity key={`ai-${tag}`} style={styles.tagPillAi} onPress={() => removeTag(tag)}>
+              <Text style={styles.tagTextAi}>{tag} ×</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <View style={styles.tagComposer}>
+          <TextInput
+            value={tagInput}
+            onChangeText={setTagInput}
+            placeholder="添加标签"
+            style={styles.tagInput}
+            onSubmitEditing={addTag}
+            returnKeyType="done"
+          />
+          <TouchableOpacity style={styles.addBtn} onPress={addTag}>
+            <Text style={styles.addBtnText}>添加</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
       <WebView
         source={{ html: htmlContent }}
         style={styles.webview}
@@ -229,5 +286,16 @@ export default function ArticleDetailScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f3f7ff' },
+  tagPanel: { backgroundColor: '#f4f7f4', borderBottomWidth: 1, borderBottomColor: '#dce5e0', paddingHorizontal: 12, paddingTop: 10, paddingBottom: 10, gap: 8 },
+  tagTitle: { fontSize: 13, color: '#355249', fontFamily: fontFamily.mono },
+  tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  tagPill: { backgroundColor: '#eef3ef', borderRadius: 999, paddingHorizontal: 10, minHeight: 24, borderWidth: 1, borderColor: '#d7e1db', alignItems: 'center', justifyContent: 'center' },
+  tagText: { fontSize: 11, color: '#315449', fontFamily: fontFamily.chinese },
+  tagPillAi: { backgroundColor: '#f5efe6', borderRadius: 999, paddingHorizontal: 10, minHeight: 24, borderWidth: 1, borderColor: '#e6d5bf', alignItems: 'center', justifyContent: 'center' },
+  tagTextAi: { fontSize: 11, color: '#7a5a32', fontFamily: fontFamily.chinese },
+  tagComposer: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+  tagInput: { flex: 1, backgroundColor: '#fff', borderWidth: 1, borderColor: '#d4ddd8', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, fontFamily: fontFamily.chinese, fontSize: 13 },
+  addBtn: { backgroundColor: '#0f3b31', borderRadius: 10, paddingHorizontal: 12, minHeight: 36, alignItems: 'center', justifyContent: 'center' },
+  addBtnText: { color: '#fff', fontFamily: fontFamily.chineseBold, fontSize: 13 },
   webview: { flex: 1, backgroundColor: '#f3f7ff' },
 });
