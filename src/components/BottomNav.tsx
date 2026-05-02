@@ -17,12 +17,12 @@ export function BottomNav() {
   return (
     <View style={styles.wrap}>
       <TouchableOpacity style={styles.item} activeOpacity={0.85} onPress={() => jump('home')}>
-        <AppIcon name="home" size={28} color={active === 'home' ? '#26755e' : '#b2b8be'} />
+        <AppIcon name="home" size={26} color={active === 'home' ? '#065f46' : '#a1a1aa'} />
         <Text style={[styles.label, active === 'home' ? styles.labelActive : null]}>HOME</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.item} activeOpacity={0.85} onPress={() => jump('library')}>
-        <AppIcon name="bookmarks" size={28} color={active === 'library' ? '#26755e' : '#b2b8be'} />
+        <AppIcon name="bookmarks" size={26} color={active === 'library' ? '#065f46' : '#a1a1aa'} />
         <Text style={[styles.label, active === 'library' ? styles.labelActive : null]}>{t('nav.library').toUpperCase()}</Text>
       </TouchableOpacity>
     </View>
@@ -32,35 +32,31 @@ export function BottomNav() {
 const styles = StyleSheet.create({
   wrap: {
     position: 'absolute',
-    left: 14,
-    right: 14,
-    bottom: 12,
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: '#d6d9dc',
-    backgroundColor: '#f7f8f9',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.05)',
+    backgroundColor: '#ffffff',
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     alignItems: 'center',
-    height: 88,
-    shadowColor: '#112018',
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 5 },
+    height: 84,
   },
   item: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: 4,
     minWidth: 104,
   },
   label: {
-    fontSize: 12,
-    color: '#b2b8be',
-    fontFamily: fontFamily.mono,
-    letterSpacing: 1.1,
+    fontSize: 10,
+    color: '#a1a1aa',
+    fontFamily: fontFamily.sansMedium,
+    letterSpacing: 1.8,
+    lineHeight: 12,
   },
   labelActive: {
-    color: '#26755e',
+    color: '#065f46',
   },
 });
