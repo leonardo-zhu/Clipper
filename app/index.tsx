@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
   brand: { fontSize: 34, color: '#0f3b31', fontFamily: fontFamily.serif },
   headerSub: { marginTop: 3, fontSize: 11, color: '#6c7e77', fontFamily: fontFamily.mono, letterSpacing: 0.7 },
   headerActions: { flexDirection: 'row', gap: 8 },
-  tagStrip: { paddingHorizontal: 16, gap: 8, paddingBottom: 4 },
+  tagStrip: { paddingHorizontal: 16, gap: 8, paddingBottom: 6, paddingRight: 22 },
   filterChip: {
     borderWidth: 1,
     borderColor: '#d5ded8',

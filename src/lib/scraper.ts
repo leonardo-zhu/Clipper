@@ -38,6 +38,16 @@ function extractMsgTitle(html: string): string {
   return decodeHtml(match?.[1] ?? '');
 }
 
+function extractMetaOgTitle(html: string): string {
+  const match = html.match(/<meta[^>]*property=["']og:title["'][^>]*content=["']([\s\S]*?)["'][^>]*>/i);
+  return decodeHtml(match?.[1] ?? '');
+}
+
+function extractMetaOgDescription(html: string): string {
+  const match = html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([\s\S]*?)["'][^>]*>/i);
+  return decodeHtml(match?.[1] ?? '');
+}
+
 function inferLang(title: string, description: string): string {
   const text = `${title} ${description}`;
   return /[\u4e00-\u9fff]/.test(text) ? 'zh-CN' : 'en-US';
@@ -55,7 +65,8 @@ export async function scrapeWxArticle(url: string): Promise<ScrapedArticle> {
   const jsTitle = extractMsgTitle(html);
   const titleMatch = html.match(/<h1[^>]*class="rich_media_title\s*"[^>]*>([\s\S]*?)<\/h1>/);
   const h1Title = titleMatch ? decodeHtml(titleMatch[1].replace(/<[^>]+>/g, '')) : '';
-  const title = jsTitle || h1Title || 'Untitled';
+  const ogTitle = extractMetaOgTitle(html);
+  const title = jsTitle || h1Title || ogTitle || 'Untitled';
 
   // Extract body HTML — WeChat stores article in id="js_content"
   // Use div nesting counter to find the correct closing tag
@@ -120,7 +131,8 @@ export async function scrapeWxArticle(url: string): Promise<ScrapedArticle> {
   // 3) title
   const metaDescription =
     html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([\s\S]*?)["'][^>]*>/i)?.[1] ?? '';
-  const description = decodeHtml(metaDescription || profileSignature || title);
+  const ogDescription = extractMetaOgDescription(html);
+  const description = decodeHtml(metaDescription || ogDescription || profileSignature || title);
   const lang = inferLang(title, description);
 
   return { title, description, body, source, profileSignature, msgCdnUrl, coverUrl1x1, lang };

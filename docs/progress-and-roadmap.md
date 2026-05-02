@@ -64,6 +64,17 @@ pnpm analyze /path/to/clipper-snapshot.json
 ### 验证
 - `pnpm typecheck` 已通过
 
+## 本轮更新（2026-05-02，Round 8 Parsing Fallback）
+
+### 已完成
+- 抓取 title/description 再增强：
+  - title 新增 `og:title` fallback
+  - description 新增 `og:description` fallback
+- 首页标签筛选条边缘体验微调（右侧留白避免视觉裁切）
+
+### 验证
+- `pnpm typecheck` 已通过
+
 ## 本轮更新（2026-05-02，Round 7 Tag Efficiency）
 
 ### 已完成
