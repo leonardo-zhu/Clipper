@@ -9,7 +9,7 @@ import { processUrl } from '@/src/lib/queue';
 import { AppIcon } from '@/src/components/AppIcon';
 import { fontFamily } from '@/src/theme/typography';
 import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system/legacy';
+import { File } from 'expo-file-system';
 import { getArticleByUrl, insertArticle, updateArticle } from '@/src/db/queries';
 import { parseTags } from '@/src/lib/tags';
 
@@ -98,7 +98,7 @@ export default function HomeScreen() {
       if (picked.canceled) return;
       if (!picked.assets?.length) throw new Error('未选择文件或文件不可读取');
 
-      const raw = await FileSystem.readAsStringAsync(picked.assets[0].uri, { encoding: FileSystem.EncodingType.UTF8 });
+      const raw = await new File(picked.assets[0].uri).text();
       const payload = JSON.parse(raw) as { articles?: Partial<Article>[] };
       const rows = Array.isArray(payload.articles) ? payload.articles : [];
 
