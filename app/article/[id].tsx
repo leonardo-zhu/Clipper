@@ -7,6 +7,7 @@ import type { Article } from '@/src/db/schema';
 import { parseTags, splitTags, encodeTags, topTagsFromTagSets } from '@/src/lib/tags';
 import { updateArticle } from '@/src/db/queries';
 import { fontFamily } from '@/src/theme/typography';
+import { t } from '@/src/i18n';
 
 export default function ArticleDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -254,7 +255,7 @@ export default function ArticleDetailScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.tagPanel}>
-        <Text style={styles.tagTitle}>Tags</Text>
+        <Text style={styles.tagTitle}>{t('article.tags')}</Text>
         <View style={styles.tagRow}>
           {baseTags.map((tag) => (
             <TouchableOpacity key={`base-${tag}`} style={styles.tagPill} onPress={() => removeTag(tag)}>
@@ -271,18 +272,18 @@ export default function ArticleDetailScreen() {
           <TextInput
             value={tagInput}
             onChangeText={setTagInput}
-            placeholder="添加标签"
+            placeholder={t('article.addTag')}
             style={styles.tagInput}
             onSubmitEditing={addTag}
             returnKeyType="done"
           />
           <TouchableOpacity style={styles.addBtn} onPress={addTag}>
-            <Text style={styles.addBtnText}>添加</Text>
+            <Text style={styles.addBtnText}>{t('article.add')}</Text>
           </TouchableOpacity>
         </View>
         {quickTags.length ? (
           <>
-            <Text style={styles.quickTitle}>快速添加</Text>
+            <Text style={styles.quickTitle}>{t('article.quickAdd')}</Text>
             <View style={styles.tagRow}>
               {quickTags.map((tag) => (
                 <TouchableOpacity key={`quick-${tag}`} style={styles.quickPill} onPress={() => addTagDirect(tag)}>
