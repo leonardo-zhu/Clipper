@@ -10,7 +10,10 @@
     "prebuild": "expo prebuild",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "analyze": "node scripts/analyze.js"
+    "analyze": "node scripts/analyze.js",
+    "check:i18n": "node scripts/check-i18n.js",
+    "check:state-flow": "node scripts/check-state-flow.js",
+    "check:all": "pnpm typecheck && pnpm check:i18n && pnpm check:state-flow"
   },
   "dependencies": {
     "@expo-google-fonts/dm-mono": "^0.4.2",

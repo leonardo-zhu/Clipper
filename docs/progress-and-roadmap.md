@@ -176,3 +176,9 @@ pnpm analyze /path/to/clipper-snapshot.json
 - 标签 chip 统一字号与行高（10/12）并关闭 includeFontPadding，修复中英混排导致的视觉错位问题（Home/Library/Article）。
 - Storage 导入卡片视觉强化：导入卡高亮（浅绿背景 + 边框），与导出卡形成主次层级。
 - 本轮仅做 UI/样式收口，不改动导入导出和抓取逻辑。
+
+### Round 5（Session A 逻辑增强）
+- 微信抓取增强：`cover_url_1_1` 与 `cdn_url_1_1` 双字段兼容，JS 变量支持单双引号。
+- 标签逻辑增强：标签 canonical 归一化（空白/大小写），避免重复标签导致筛选与推荐不一致。
+- 导入兼容逻辑抽取：新增 `src/lib/importer.ts` 统一状态映射与导入 patch 规则，Home/Storage 共用。
+- 回归检查增强：新增 `pnpm check:i18n`、`pnpm check:state-flow`、`pnpm check:all`。
