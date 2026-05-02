@@ -26,15 +26,15 @@ export default function IngestionScreen() {
         <ActivityIndicator size="large" color="#305e51" />
       </View>
       <Text style={styles.title}>{t('ingestion.title')}</Text>
-      <Text style={styles.sub}>We are fetching title, description and cover metadata from WeChat.</Text>
+      <Text style={styles.sub}>{t('ingestion.sub')}</Text>
 
       <View style={styles.card}>
         {article?.msg_cdn_url ? <Image source={{ uri: article.msg_cdn_url }} style={styles.cover} /> : <View style={styles.coverPlaceholder} />}
-        <Text style={styles.articleTitle}>{article?.title ?? 'Ingesting article...'}</Text>
-        <Text style={styles.description}>{article?.description ?? 'Description will appear here after the first crawl pass.'}</Text>
+        <Text style={styles.articleTitle}>{article?.title ?? t('ingestion.placeholderTitle')}</Text>
+        <Text style={styles.description}>{article?.description ?? t('ingestion.placeholderDescription')}</Text>
         {article?.status === 'summarising' ? (
           <View style={styles.progressWrap}>
-            <Text style={styles.progressLabel}>AI generation summary is running</Text>
+            <Text style={styles.progressLabel}>{t('ingestion.aiRunning')}</Text>
             <View style={styles.progressTrack}>
               <View style={[styles.progressFill, { width: `${Math.max(0, Math.min(100, article.summarising_progress ?? 0))}%` }]} />
             </View>
@@ -47,7 +47,7 @@ export default function IngestionScreen() {
           <Text style={styles.ctaText}>{t('ingestion.moveToHome')}</Text>
         </TouchableOpacity>
       ) : (
-        <Text style={styles.note}>{article?.status === 'summarising' ? 'AI generation summary is running' : t('status.ingesting')}</Text>
+        <Text style={styles.note}>{article?.status === 'summarising' ? t('ingestion.aiRunning') : t('status.ingesting')}</Text>
       )}
     </View>
   );
