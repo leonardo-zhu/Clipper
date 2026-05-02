@@ -32,7 +32,12 @@ export default function LibraryScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Library</Text>
+      <View style={styles.header}>
+        <Text style={styles.heading}>Library</Text>
+        <TouchableOpacity style={styles.storageBtn} onPress={() => router.push('/storage')}>
+          <Text style={styles.storageBtnText}>Storage</Text>
+        </TouchableOpacity>
+      </View>
       <FlatList
         data={articles}
         keyExtractor={(item) => item.id}
@@ -46,7 +51,10 @@ export default function LibraryScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f9faf7', paddingTop: 20 },
-  heading: { fontSize: 34, color: '#064e3b', fontWeight: '700', paddingHorizontal: 16, paddingBottom: 12 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 12 },
+  heading: { fontSize: 34, color: '#064e3b', fontWeight: '700' },
+  storageBtn: { borderWidth: 1, borderColor: '#d1d5db', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, backgroundColor: '#f3f4f1' },
+  storageBtnText: { color: '#1f2937', fontSize: 12, fontWeight: '600' },
   list: { paddingHorizontal: 16, paddingBottom: 120, gap: 12 },
   collectionCard: { flexDirection: 'row', gap: 12, borderRadius: 12, borderWidth: 1, borderColor: '#e5e7eb', backgroundColor: '#fff', padding: 10, alignItems: 'center' },
   squareImage: { width: 80, height: 80, borderRadius: 10, backgroundColor: '#edeeeb' },
@@ -55,4 +63,3 @@ const styles = StyleSheet.create({
   collectionTitle: { fontSize: 18, color: '#1a1c1b', fontWeight: '600' },
   collectionDesc: { fontSize: 14, color: '#45474a' },
 });
-
