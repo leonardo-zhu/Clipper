@@ -37,11 +37,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0,0,0,0.05)',
-    backgroundColor: '#ffffff',
+    backgroundColor: 'rgba(255,255,255,0.72)',
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     alignItems: 'center',
-    height: 84,
+    height: 88,
   },
   item: {
     alignItems: 'center',
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 10,
     color: '#a1a1aa',
-    fontFamily: fontFamily.sansMedium,
+    fontFamily: fontFamily.mono,
     letterSpacing: 1.8,
     lineHeight: 12,
   },
