@@ -8,9 +8,24 @@ importers:
 
   .:
     dependencies:
+      '@expo-google-fonts/dm-mono':
+        specifier: ^0.4.2
+        version: 0.4.2
+      '@expo-google-fonts/dm-serif-display':
+        specifier: ^0.4.2
+        version: 0.4.2
+      '@expo-google-fonts/noto-sans-sc':
+        specifier: ^0.4.3
+        version: 0.4.3
+      '@expo-google-fonts/sora':
+        specifier: ^0.4.2
+        version: 0.4.2
       '@expo/metro-runtime':
         specifier: ~55.0.10
         version: 55.0.10(@expo/dom-webview@55.0.5)(expo@55.0.18)(react-dom@19.2.5(react@19.2.0))(react-native@0.83.6(@babel/core@7.29.0)(@react-native/metro-config@0.85.2(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
+      '@expo/vector-icons':
+        specifier: ^15.1.1
+        version: 15.1.1(expo-font@55.0.6)(react-native@0.83.6(@babel/core@7.29.0)(@react-native/metro-config@0.85.2(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
       '@op-engineering/op-sqlite':
         specifier: ^15.2.12
         version: 15.2.12(react-native@0.83.6(@babel/core@7.29.0)(@react-native/metro-config@0.85.2(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
@@ -29,6 +44,9 @@ importers:
       expo-file-system:
         specifier: ~55.0.17
         version: 55.0.17(expo@55.0.18)(react-native@0.83.6(@babel/core@7.29.0)(@react-native/metro-config@0.85.2(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))
+      expo-font:
+        specifier: ^55.0.6
+        version: 55.0.6(expo@55.0.18)(react-native@0.83.6(@babel/core@7.29.0)(@react-native/metro-config@0.85.2(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
       expo-linking:
         specifier: ~55.0.14
         version: 55.0.14(expo@55.0.18)(react-native@0.83.6(@babel/core@7.29.0)(@react-native/metro-config@0.85.2(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
@@ -584,8 +602,20 @@ packages:
     resolution: {integrity: sha512-XQsZgjm2EcVUiZQf11UBJQfmZeEmOW8DpI1gsFeln6w0ae0ii4dMQEQ0kjl6DspdWX1aGY1/loyXnP0JS06e/A==}
     engines: {node: '>=0.8.0'}
 
+  '@expo-google-fonts/dm-mono@0.4.2':
+    resolution: {integrity: sha512-loMaZOkQRs1r7yt4rN39zcr9e0J+smwnSx929yuODkuiPfsY4PaW18C9SEZ0BvXfcBKoRhatGoIBl8V2MOYVPQ==}
+
+  '@expo-google-fonts/dm-serif-display@0.4.2':
+    resolution: {integrity: sha512-onlO8xAzsgMbKcwUE+fAgJ5AFHhk06VtaDN7eQOJwjV65QIciDKTiSNu1ymHc4m6g/x6D9OqPIYPXdTNIfaEaA==}
+
   '@expo-google-fonts/material-symbols@0.4.34':
     resolution: {integrity: sha512-PdwETUhvu1gHF1e8eIyEHnBJLq/dRNoTrT5yhsGUfGyRxH5pbm54dF3+QPknxwMKj0M1trN7PSelYz+yzlt3lA==}
+
+  '@expo-google-fonts/noto-sans-sc@0.4.3':
+    resolution: {integrity: sha512-9rAwdFTFHbO/u6Cs0gj2jZbW74TGIiaFNQnXYH2s5wA1bzVkwbaviL4t8YUV642eGYjg86eH6DkAEQmfNHDncQ==}
+
+  '@expo-google-fonts/sora@0.4.2':
+    resolution: {integrity: sha512-X86Kl1cfObcSUzTLIbtmrPCLRlIbCNh0uBOo8bjmXb8gWgVVhnI8CZJEK2btsdq85JPn5k4P6sbV9JLbAm7dqQ==}
 
   '@expo/cli@55.0.26':
     resolution: {integrity: sha512-Ud9gpeGMF5RIL42LXvCw3k3mWK8rf/P2wu+Yrzz9Do1kcFKZeT9Vy2D/xukjdr/Xw+ELba87ThOot17GsPiWjw==}
@@ -3807,7 +3837,15 @@ snapshots:
     dependencies:
       '@types/hammerjs': 2.0.46
 
+  '@expo-google-fonts/dm-mono@0.4.2': {}
+
+  '@expo-google-fonts/dm-serif-display@0.4.2': {}
+
   '@expo-google-fonts/material-symbols@0.4.34': {}
+
+  '@expo-google-fonts/noto-sans-sc@0.4.3': {}
+
+  '@expo-google-fonts/sora@0.4.2': {}
 
   '@expo/cli@55.0.26(@expo/dom-webview@55.0.5)(@expo/metro-runtime@55.0.10)(expo-constants@55.0.15)(expo-font@55.0.6)(expo-router@55.0.13)(expo@55.0.18)(react-dom@19.2.5(react@19.2.0))(react-native@0.83.6(@babel/core@7.29.0)(@react-native/metro-config@0.85.2(@babel/core@7.29.0))(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)(typescript@5.8.3)':
     dependencies:
