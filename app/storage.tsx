@@ -99,6 +99,7 @@ export default function StorageScreen() {
           profile_signature: row.profile_signature ?? null,
           msg_cdn_url: row.msg_cdn_url ?? null,
           cover_url_1_1: row.cover_url_1_1 ?? null,
+          tags_json: row.tags_json ?? null,
           lang: row.lang ?? null,
           ingested_at: row.ingested_at ?? null,
           summarising_progress: typeof row.summarising_progress === 'number' ? row.summarising_progress : 0,

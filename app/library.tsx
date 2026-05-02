@@ -4,9 +4,11 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useArticlesStore } from '@/src/store/articles';
 import type { Article } from '@/src/db/schema';
 import { fontFamily } from '@/src/theme/typography';
+import { parseTags } from '@/src/lib/tags';
 
 function CollectionCard({ item, onPress }: { item: Article; onPress: () => void }) {
   const imageUri = item.cover_url_1_1 || item.msg_cdn_url || '';
+  const tags = parseTags(item.tags_json);
 
   return (
     <TouchableOpacity style={styles.collectionCard} onPress={onPress} activeOpacity={0.88}>
@@ -16,6 +18,15 @@ function CollectionCard({ item, onPress }: { item: Article; onPress: () => void 
           {item.title ?? 'Untitled'}
         </Text>
         {!!item.description ? <Text style={styles.collectionDesc}>{item.description}</Text> : null}
+        {tags.length ? (
+          <View style={styles.tagRow}>
+            {tags.slice(0, 2).map((tag) => (
+              <View key={tag} style={styles.tagPill}>
+                <Text style={styles.tagText}>{tag}</Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
       </View>
     </TouchableOpacity>
   );
@@ -87,4 +98,7 @@ const styles = StyleSheet.create({
   collectionMeta: { flex: 1, gap: 6 },
   collectionTitle: { fontSize: 20, color: '#101815', fontFamily: fontFamily.serif },
   collectionDesc: { fontSize: 13, color: '#3e4a45', lineHeight: 19, fontFamily: fontFamily.chinese },
+  tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 2 },
+  tagPill: { backgroundColor: '#eef3ef', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: '#d7e1db' },
+  tagText: { fontSize: 10, color: '#315449', fontFamily: fontFamily.mono },
 });

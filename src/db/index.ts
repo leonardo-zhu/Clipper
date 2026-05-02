@@ -18,6 +18,7 @@ function migrateArticles(database: DB) {
     ['profile_signature', 'TEXT'],
     ['msg_cdn_url', 'TEXT'],
     ['cover_url_1_1', 'TEXT'],
+    ['tags_json', 'TEXT'],
     ['lang', 'TEXT'],
     ['ingested_at', 'INTEGER'],
     ['summarising_progress', 'INTEGER NOT NULL DEFAULT 0'],
