@@ -170,3 +170,9 @@ pnpm analyze /path/to/clipper-snapshot.json
 
 ### 验证
 - `pnpm typecheck` 已通过
+
+### Round 4（Session A UI 收口）
+- Home 空状态与 Add 入口冲突优化：仅在无文章时显示中部 CTA，有文章后恢复右下角 FAB，避免双入口并存。
+- 标签 chip 统一字号与行高（10/12）并关闭 includeFontPadding，修复中英混排导致的视觉错位问题（Home/Library/Article）。
+- Storage 导入卡片视觉强化：导入卡高亮（浅绿背景 + 边框），与导出卡形成主次层级。
+- 本轮仅做 UI/样式收口，不改动导入导出和抓取逻辑。

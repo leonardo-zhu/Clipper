@@ -135,7 +135,7 @@ export default function StorageScreen() {
       <Text style={styles.title}>{t('storage.title')}</Text>
       <Text style={styles.hint}>{t('storage.hint')}</Text>
 
-      <View style={styles.card}>
+      <View style={[styles.card, styles.importCard]}>
         <Text style={styles.cardTitle}>{t('storage.importCardTitle')}</Text>
         <Text style={styles.cardText}>{t('storage.importCardText')}</Text>
         <TouchableOpacity style={[styles.primaryBtn, importing ? styles.disabledBtn : null]} onPress={importSnapshot} disabled={importing}>
@@ -181,6 +181,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
+  },
+  importCard: {
+    borderColor: '#cfe0d7',
+    backgroundColor: '#fbfefc',
   },
   cardTitle: { fontSize: 17, color: '#11211b', fontFamily: fontFamily.chineseBold },
   cardText: { fontSize: 13, color: '#4a5a54', lineHeight: 20, fontFamily: fontFamily.chinese },
