@@ -64,6 +64,16 @@ pnpm analyze /path/to/clipper-snapshot.json
 ### 验证
 - `pnpm typecheck` 已通过
 
+## 本轮更新（2026-05-02，Round 10 i18n Finish）
+
+### 已完成
+- Ingestion 页面硬编码文案 i18n 化
+- Storage 页面提示/按钮/卡片标题 i18n 化
+- 新增导出成功/失败文案 key，导入导出提示统一到 i18n
+
+### 验证
+- `pnpm typecheck` 已通过
+
 ## 本轮更新（2026-05-02，Round 9 i18n Boundary）
 
 ### 已完成

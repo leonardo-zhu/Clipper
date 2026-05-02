@@ -7,6 +7,7 @@ import { getAllArticles, getArticleByUrl, insertArticle, updateArticle } from '@
 import { useArticlesStore } from '@/src/store/articles';
 import type { Article, ArticleStatus } from '@/src/db/schema';
 import { fontFamily } from '@/src/theme/typography';
+import { t } from '@/src/i18n';
 
 type ExportSnapshot = {
   app: 'Clipper';
@@ -37,7 +38,7 @@ export default function StorageScreen() {
       setLastPath(file.uri);
       const canShare = await Sharing.isAvailableAsync();
       if (!canShare) {
-        Alert.alert('导出完成', `文件已生成：\n${file.uri}`);
+        Alert.alert(t('alert.exportDoneTitle'), `文件已生成：\n${file.uri}`);
         return;
       }
       await Sharing.shareAsync(file.uri, {
@@ -45,7 +46,7 @@ export default function StorageScreen() {
         dialogTitle: '导出 Clipper 数据快照',
       });
     } catch (err: any) {
-      Alert.alert('导出失败', err?.message ?? '未知错误');
+      Alert.alert(t('alert.exportFailTitle'), err?.message ?? '未知错误');
     } finally {
       setExporting(false);
     }
@@ -121,9 +122,9 @@ export default function StorageScreen() {
       }
 
       loadArticles();
-      Alert.alert('导入完成', `新增 ${inserted} 篇，更新 ${updated} 篇，跳过 ${skipped} 条`);
+      Alert.alert(t('alert.importDoneTitle'), `新增 ${inserted} 篇，更新 ${updated} 篇，跳过 ${skipped} 条`);
     } catch (err: any) {
-      Alert.alert('导入失败', err?.message ?? '未知错误');
+      Alert.alert(t('alert.importFailTitle'), err?.message ?? '未知错误');
     } finally {
       setImporting(false);
     }
@@ -131,31 +132,31 @@ export default function StorageScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Storage</Text>
-      <Text style={styles.hint}>导入导出都保留在这里。建议你从 Home 的 + 菜单进入导入，从本页执行导出与数据检查。</Text>
+      <Text style={styles.title}>{t('storage.title')}</Text>
+      <Text style={styles.hint}>{t('storage.hint')}</Text>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>导入 Snapshot JSON</Text>
-        <Text style={styles.cardText}>读取你之前导出的快照，按 URL 去重并自动更新现有文章字段。</Text>
+        <Text style={styles.cardTitle}>{t('storage.importCardTitle')}</Text>
+        <Text style={styles.cardText}>{t('storage.importCardText')}</Text>
         <TouchableOpacity style={[styles.primaryBtn, importing ? styles.disabledBtn : null]} onPress={importSnapshot} disabled={importing}>
-          <Text style={styles.primaryBtnText}>{importing ? '导入中...' : '选择并导入 JSON'}</Text>
+          <Text style={styles.primaryBtnText}>{importing ? t('home.importing') : t('storage.importAction')}</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>导出 Snapshot JSON</Text>
-        <Text style={styles.cardText}>包含文章列表、状态、摘要、正文 HTML，用于备份或在 Mac 侧分析修补。</Text>
+        <Text style={styles.cardTitle}>{t('storage.exportCardTitle')}</Text>
+        <Text style={styles.cardText}>{t('storage.exportCardText')}</Text>
         <TouchableOpacity style={[styles.primaryBtn, exporting ? styles.disabledBtn : null]} onPress={exportSnapshot} disabled={exporting}>
-          <Text style={styles.primaryBtnText}>{exporting ? '导出中...' : '导出并分享 JSON'}</Text>
+          <Text style={styles.primaryBtnText}>{exporting ? t('storage.exporting') : t('storage.exportAction')}</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Mac 侧分析命令</Text>
+        <Text style={styles.cardTitle}>{t('storage.macroCommandTitle')}</Text>
         <Text style={styles.code}>pnpm analyze /path/to/clipper-snapshot.json</Text>
         {lastPath ? (
           <>
-            <Text style={styles.cardText}>最近导出文件：</Text>
+            <Text style={styles.cardText}>{t('storage.lastExport')}</Text>
             <Text style={styles.path}>{lastPath}</Text>
           </>
         ) : null}
