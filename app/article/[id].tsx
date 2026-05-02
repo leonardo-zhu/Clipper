@@ -4,13 +4,13 @@ import { useLocalSearchParams } from 'expo-router';
 import { WebView } from 'react-native-webview';
 import { useArticlesStore } from '@/src/store/articles';
 import type { Article } from '@/src/db/schema';
-import { parseTags, splitTags, encodeTags } from '@/src/lib/tags';
+import { parseTags, splitTags, encodeTags, topTagsFromTagSets } from '@/src/lib/tags';
 import { updateArticle } from '@/src/db/queries';
 import { fontFamily } from '@/src/theme/typography';
 
 export default function ArticleDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { refreshArticle, removeArticle } = useArticlesStore();
+  const { articles, refreshArticle, removeArticle } = useArticlesStore();
   const [article, setArticle] = useState<Article | null>(null);
   const [tagInput, setTagInput] = useState('');
 
@@ -47,6 +47,10 @@ export default function ArticleDetailScreen() {
 
   const tags = useMemo(() => parseTags(article?.tags_json), [article?.tags_json]);
   const { base: baseTags, ai: aiTags } = useMemo(() => splitTags(tags), [tags]);
+  const quickTags = useMemo(() => {
+    const allTagSets = articles.map((a) => parseTags(a.tags_json));
+    return topTagsFromTagSets(allTagSets, 10).filter((t) => !tags.includes(t));
+  }, [articles, tags]);
 
   const saveTags = useCallback((nextTags: string[]) => {
     if (!article) return;
@@ -65,6 +69,12 @@ export default function ArticleDetailScreen() {
     saveTags([...tags, next]);
     setTagInput('');
   }, [saveTags, tagInput, tags]);
+
+  const addTagDirect = useCallback((next: string) => {
+    if (!next.trim()) return;
+    if (tags.includes(next)) return;
+    saveTags([...tags, next]);
+  }, [saveTags, tags]);
 
   const removeTag = useCallback((tag: string) => {
     saveTags(tags.filter((t) => t !== tag));
@@ -270,6 +280,18 @@ export default function ArticleDetailScreen() {
             <Text style={styles.addBtnText}>添加</Text>
           </TouchableOpacity>
         </View>
+        {quickTags.length ? (
+          <>
+            <Text style={styles.quickTitle}>快速添加</Text>
+            <View style={styles.tagRow}>
+              {quickTags.map((tag) => (
+                <TouchableOpacity key={`quick-${tag}`} style={styles.quickPill} onPress={() => addTagDirect(tag)}>
+                  <Text style={styles.quickText}>+ {tag}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </>
+        ) : null}
       </View>
       <WebView
         source={{ html: htmlContent }}
@@ -294,6 +316,9 @@ const styles = StyleSheet.create({
   tagPillAi: { backgroundColor: '#f5efe6', borderRadius: 999, paddingHorizontal: 10, minHeight: 24, borderWidth: 1, borderColor: '#e6d5bf', alignItems: 'center', justifyContent: 'center' },
   tagTextAi: { fontSize: 11, color: '#7a5a32', fontFamily: fontFamily.chinese },
   tagComposer: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+  quickTitle: { fontSize: 12, color: '#6c7e77', fontFamily: fontFamily.chinese },
+  quickPill: { backgroundColor: '#ffffff', borderRadius: 999, paddingHorizontal: 10, minHeight: 24, borderWidth: 1, borderColor: '#d8e1dc', alignItems: 'center', justifyContent: 'center' },
+  quickText: { fontSize: 11, color: '#3b5c52', fontFamily: fontFamily.chinese },
   tagInput: { flex: 1, backgroundColor: '#fff', borderWidth: 1, borderColor: '#d4ddd8', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, fontFamily: fontFamily.chinese, fontSize: 13 },
   addBtn: { backgroundColor: '#0f3b31', borderRadius: 10, paddingHorizontal: 12, minHeight: 36, alignItems: 'center', justifyContent: 'center' },
   addBtnText: { color: '#fff', fontFamily: fontFamily.chineseBold, fontSize: 13 },

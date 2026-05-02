@@ -64,6 +64,17 @@ pnpm analyze /path/to/clipper-snapshot.json
 ### 验证
 - `pnpm typecheck` 已通过
 
+## 本轮更新（2026-05-02，Round 7 Tag Efficiency）
+
+### 已完成
+- 详情页标签编辑增强：
+  - 基于全库标签频次生成“快速添加”建议
+  - 点击建议标签可一键添加到当前文章
+- 标签工具新增频次聚合函数，支持后续推荐策略扩展
+
+### 验证
+- `pnpm typecheck` 已通过
+
 ## 本轮更新（2026-05-02，Round 6 Tag Editing）
 
 ### 已完成
