@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import * as FileSystem from 'expo-file-system/legacy';
+import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import { getAllArticles, getArticleByUrl, insertArticle, updateArticle } from '@/src/db/queries';
@@ -32,17 +32,15 @@ export default function StorageScreen() {
         articles,
       };
       const fileName = `clipper-snapshot-${Date.now()}.json`;
-      const path = `${FileSystem.cacheDirectory}${fileName}`;
-      await FileSystem.writeAsStringAsync(path, JSON.stringify(payload, null, 2), {
-        encoding: FileSystem.EncodingType.UTF8,
-      });
-      setLastPath(path);
+      const file = new File(Paths.cache, fileName);
+      file.write(JSON.stringify(payload, null, 2));
+      setLastPath(file.uri);
       const canShare = await Sharing.isAvailableAsync();
       if (!canShare) {
-        Alert.alert('导出完成', `文件已生成：\n${path}`);
+        Alert.alert('导出完成', `文件已生成：\n${file.uri}`);
         return;
       }
-      await Sharing.shareAsync(path, {
+      await Sharing.shareAsync(file.uri, {
         mimeType: 'application/json',
         dialogTitle: '导出 Clipper 数据快照',
       });
@@ -76,7 +74,7 @@ export default function StorageScreen() {
       }
 
       const asset = picked.assets[0];
-      const raw = await FileSystem.readAsStringAsync(asset.uri, { encoding: FileSystem.EncodingType.UTF8 });
+      const raw = await new File(asset.uri).text();
       const payload = JSON.parse(raw) as { articles?: Partial<Article>[] };
       const rows = Array.isArray(payload.articles) ? payload.articles : [];
 
