@@ -11,12 +11,13 @@ import { fontFamily } from '@/src/theme/typography';
 import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { getArticleByUrl, insertArticle, updateArticle } from '@/src/db/queries';
-import { parseTags } from '@/src/lib/tags';
+import { BASE_TAGS, parseTags, splitTags } from '@/src/lib/tags';
 
 function HomeCard({ item, onPress }: { item: Article; onPress: () => void }) {
   const isSummarising = item.status === 'summarising';
   const progress = Math.max(0, Math.min(100, item.summarising_progress ?? 0));
   const tags = parseTags(item.tags_json);
+  const { base, ai } = splitTags(tags);
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.88}>
@@ -26,9 +27,14 @@ function HomeCard({ item, onPress }: { item: Article; onPress: () => void }) {
         {!!item.description ? <Text style={styles.description}>{item.description}</Text> : null}
         {tags.length ? (
           <View style={styles.tagRow}>
-            {tags.slice(0, 3).map((tag) => (
+            {base.slice(0, 2).map((tag) => (
               <View key={tag} style={styles.tagPill}>
                 <Text style={styles.tagText}>{tag}</Text>
+              </View>
+            ))}
+            {ai.slice(0, 1).map((tag) => (
+              <View key={tag} style={styles.tagPillAi}>
+                <Text style={styles.tagTextAi}>{tag}</Text>
               </View>
             ))}
           </View>
@@ -53,6 +59,7 @@ export default function HomeScreen() {
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [link, setLink] = useState('');
   const [importing, setImporting] = useState(false);
+  const [activeTag, setActiveTag] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -154,6 +161,8 @@ export default function HomeScreen() {
     }
   }, [closeAddMenu, loadArticles]);
 
+  const visibleArticles = activeTag ? articles.filter((article) => parseTags(article.tags_json).includes(activeTag)) : articles;
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -172,7 +181,26 @@ export default function HomeScreen() {
       </View>
 
       <FlatList
-        data={articles}
+        horizontal
+        data={['All', ...BASE_TAGS]}
+        keyExtractor={(item) => item}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.tagStrip}
+        renderItem={({ item }) => {
+          const selected = item === 'All' ? activeTag === null : activeTag === item;
+          return (
+            <TouchableOpacity
+              style={[styles.filterChip, selected ? styles.filterChipActive : null]}
+              onPress={() => setActiveTag(item === 'All' ? null : item)}
+            >
+              <Text style={[styles.filterChipText, selected ? styles.filterChipTextActive : null]}>{item}</Text>
+            </TouchableOpacity>
+          );
+        }}
+      />
+
+      <FlatList
+        data={visibleArticles}
         keyExtractor={(item) => item.id}
         refreshControl={<RefreshControl refreshing={false} onRefresh={loadArticles} tintColor="#325f53" />}
         contentContainerStyle={styles.list}
@@ -194,7 +222,7 @@ export default function HomeScreen() {
         }
       />
 
-      {articles.length > 0 ? (
+      {visibleArticles.length > 0 ? (
         <TouchableOpacity style={styles.fab} onPress={openAddMenu} activeOpacity={0.9}>
           <AppIcon name="add" size={25} color="#fff" />
         </TouchableOpacity>
@@ -264,6 +292,11 @@ const styles = StyleSheet.create({
   brand: { fontSize: 34, color: '#0f3b31', fontFamily: fontFamily.serif },
   headerSub: { marginTop: 3, fontSize: 11, color: '#6c7e77', fontFamily: fontFamily.mono, letterSpacing: 0.7 },
   headerActions: { flexDirection: 'row', gap: 8 },
+  tagStrip: { paddingHorizontal: 16, gap: 8, paddingBottom: 4 },
+  filterChip: { borderWidth: 1, borderColor: '#d5ded8', backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8 },
+  filterChipActive: { backgroundColor: '#0f3b31', borderColor: '#0f3b31' },
+  filterChipText: { fontSize: 11, color: '#29433c', fontFamily: fontFamily.mono },
+  filterChipTextActive: { color: '#fff' },
   outlineBtn: {
     borderWidth: 1,
     borderColor: '#d0d9d4',
@@ -302,6 +335,8 @@ const styles = StyleSheet.create({
   tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 2 },
   tagPill: { backgroundColor: '#eef3ef', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: '#d7e1db' },
   tagText: { fontSize: 11, color: '#315449', fontFamily: fontFamily.mono },
+  tagPillAi: { backgroundColor: '#f5efe6', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: '#e6d5bf' },
+  tagTextAi: { fontSize: 11, color: '#7a5a32', fontFamily: fontFamily.mono },
   progressWrap: { marginTop: 4, gap: 8 },
   progressLabel: { color: '#476a5f', fontSize: 12, fontFamily: fontFamily.mono, letterSpacing: 0.4 },
   progressTrack: { width: '100%', height: 5, backgroundColor: '#dae6df', borderRadius: 999 },

@@ -1,14 +1,15 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, RefreshControl } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useArticlesStore } from '@/src/store/articles';
 import type { Article } from '@/src/db/schema';
 import { fontFamily } from '@/src/theme/typography';
-import { parseTags } from '@/src/lib/tags';
+import { BASE_TAGS, parseTags, splitTags } from '@/src/lib/tags';
 
 function CollectionCard({ item, onPress }: { item: Article; onPress: () => void }) {
   const imageUri = item.cover_url_1_1 || item.msg_cdn_url || '';
   const tags = parseTags(item.tags_json);
+  const { base, ai } = splitTags(tags);
 
   return (
     <TouchableOpacity style={styles.collectionCard} onPress={onPress} activeOpacity={0.88}>
@@ -20,9 +21,14 @@ function CollectionCard({ item, onPress }: { item: Article; onPress: () => void 
         {!!item.description ? <Text style={styles.collectionDesc}>{item.description}</Text> : null}
         {tags.length ? (
           <View style={styles.tagRow}>
-            {tags.slice(0, 2).map((tag) => (
+            {base.slice(0, 1).map((tag) => (
               <View key={tag} style={styles.tagPill}>
                 <Text style={styles.tagText}>{tag}</Text>
+              </View>
+            ))}
+            {ai.slice(0, 1).map((tag) => (
+              <View key={tag} style={styles.tagPillAi}>
+                <Text style={styles.tagTextAi}>{tag}</Text>
               </View>
             ))}
           </View>
@@ -35,11 +41,17 @@ function CollectionCard({ item, onPress }: { item: Article; onPress: () => void 
 export default function LibraryScreen() {
   const router = useRouter();
   const { articles, loadArticles } = useArticlesStore();
+  const [activeTag, setActiveTag] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       loadArticles();
     }, [loadArticles]),
+  );
+
+  const visibleArticles = useMemo(
+    () => (activeTag ? articles.filter((item) => parseTags(item.tags_json).includes(activeTag)) : articles),
+    [activeTag, articles],
   );
 
   return (
@@ -54,7 +66,25 @@ export default function LibraryScreen() {
         </TouchableOpacity>
       </View>
       <FlatList
-        data={articles}
+        horizontal
+        data={['All', ...BASE_TAGS]}
+        keyExtractor={(item) => `library-tag-${item}`}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.tagStrip}
+        renderItem={({ item }) => {
+          const selected = item === 'All' ? activeTag === null : activeTag === item;
+          return (
+            <TouchableOpacity
+              style={[styles.filterChip, selected ? styles.filterChipActive : null]}
+              onPress={() => setActiveTag(item === 'All' ? null : item)}
+            >
+              <Text style={[styles.filterChipText, selected ? styles.filterChipTextActive : null]}>{item}</Text>
+            </TouchableOpacity>
+          );
+        }}
+      />
+      <FlatList
+        data={visibleArticles}
         keyExtractor={(item) => item.id}
         refreshControl={<RefreshControl refreshing={false} onRefresh={loadArticles} tintColor="#325f53" />}
         contentContainerStyle={styles.list}
@@ -78,6 +108,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#e9f0ec',
   },
   storageBtnText: { color: '#1e2f2a', fontFamily: fontFamily.mono, fontSize: 12, letterSpacing: 0.6 },
+  tagStrip: { paddingHorizontal: 16, gap: 8, paddingBottom: 8 },
+  filterChip: { borderWidth: 1, borderColor: '#d5ded8', backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8 },
+  filterChipActive: { backgroundColor: '#0f3b31', borderColor: '#0f3b31' },
+  filterChipText: { fontSize: 11, color: '#29433c', fontFamily: fontFamily.mono },
+  filterChipTextActive: { color: '#fff' },
   list: { paddingHorizontal: 16, paddingBottom: 120, gap: 12 },
   collectionCard: {
     flexDirection: 'row',
@@ -101,4 +136,6 @@ const styles = StyleSheet.create({
   tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 2 },
   tagPill: { backgroundColor: '#eef3ef', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: '#d7e1db' },
   tagText: { fontSize: 10, color: '#315449', fontFamily: fontFamily.mono },
+  tagPillAi: { backgroundColor: '#f5efe6', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 1, borderColor: '#e6d5bf' },
+  tagTextAi: { fontSize: 10, color: '#7a5a32', fontFamily: fontFamily.mono },
 });
