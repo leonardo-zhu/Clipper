@@ -182,3 +182,8 @@ pnpm analyze /path/to/clipper-snapshot.json
 - 标签逻辑增强：标签 canonical 归一化（空白/大小写），避免重复标签导致筛选与推荐不一致。
 - 导入兼容逻辑抽取：新增 `src/lib/importer.ts` 统一状态映射与导入 patch 规则，Home/Storage 共用。
 - 回归检查增强：新增 `pnpm check:i18n`、`pnpm check:state-flow`、`pnpm check:all`。
+
+### Round 6（Session A 迁移脚本）
+- 新增快照迁移脚本：`pnpm migrate:snapshot <input.json> [output.json]`
+- 迁移内容：状态值映射、`cdn_url_1_1 -> cover_url_1_1` 兼容、标签去重规范化、空白文本清洗。
+- 输出结构新增 `schemaVersion: 2` 与 `migratedAt`，便于后续导入追踪。
