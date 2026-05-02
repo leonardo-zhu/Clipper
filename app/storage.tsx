@@ -6,6 +6,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { getAllArticles, getArticleByUrl, insertArticle, updateArticle } from '@/src/db/queries';
 import { useArticlesStore } from '@/src/store/articles';
 import type { Article, ArticleStatus } from '@/src/db/schema';
+import { fontFamily } from '@/src/theme/typography';
 
 type ExportSnapshot = {
   app: 'Clipper';
@@ -131,33 +132,27 @@ export default function StorageScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>导出与存储</Text>
-      <Text style={styles.hint}>
-        这里不再展示 iPhone 沙盒目录结构。推荐流程是从 App 导出 JSON 快照，再在 Mac 上执行 `pnpm analyze` 分析。
-      </Text>
+      <Text style={styles.title}>Storage</Text>
+      <Text style={styles.hint}>导入导出都保留在这里。建议你从 Home 的 + 菜单进入导入，从本页执行导出与数据检查。</Text>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>导入数据快照</Text>
-        <Text style={styles.cardText}>
-          从已导出的 snapshot JSON 一键导入。相同 URL 会自动更新，不会重复入库。
-        </Text>
-        <TouchableOpacity style={styles.primaryBtn} onPress={importSnapshot} disabled={importing}>
-          <Text style={styles.primaryBtnText}>{importing ? '导入中...' : '导入 JSON 文件'}</Text>
+        <Text style={styles.cardTitle}>导入 Snapshot JSON</Text>
+        <Text style={styles.cardText}>读取你之前导出的快照，按 URL 去重并自动更新现有文章字段。</Text>
+        <TouchableOpacity style={[styles.primaryBtn, importing ? styles.disabledBtn : null]} onPress={importSnapshot} disabled={importing}>
+          <Text style={styles.primaryBtnText}>{importing ? '导入中...' : '选择并导入 JSON'}</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>导出数据快照（推荐）</Text>
-        <Text style={styles.cardText}>
-          导出内容包含文章列表、状态、摘要、正文 HTML，适用于真机场景下在 Mac 侧离线分析。
-        </Text>
-        <TouchableOpacity style={styles.primaryBtn} onPress={exportSnapshot} disabled={exporting}>
+        <Text style={styles.cardTitle}>导出 Snapshot JSON</Text>
+        <Text style={styles.cardText}>包含文章列表、状态、摘要、正文 HTML，用于备份或在 Mac 侧分析修补。</Text>
+        <TouchableOpacity style={[styles.primaryBtn, exporting ? styles.disabledBtn : null]} onPress={exportSnapshot} disabled={exporting}>
           <Text style={styles.primaryBtnText}>{exporting ? '导出中...' : '导出并分享 JSON'}</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Mac 分析命令</Text>
+        <Text style={styles.cardTitle}>Mac 侧分析命令</Text>
         <Text style={styles.code}>pnpm analyze /path/to/clipper-snapshot.json</Text>
         {lastPath ? (
           <>
@@ -171,15 +166,40 @@ export default function StorageScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#eef4ff' },
+  container: { flex: 1, backgroundColor: '#f4f7f4' },
   content: { padding: 16, gap: 12, paddingBottom: 40 },
-  title: { fontSize: 22, fontWeight: '800', color: '#1a1a1a' },
-  hint: { fontSize: 13, color: '#475569', lineHeight: 19 },
-  card: { backgroundColor: '#fff', borderRadius: 14, padding: 14, gap: 10, borderWidth: 1, borderColor: '#dbeafe' },
-  cardTitle: { fontSize: 16, fontWeight: '700', color: '#0f172a' },
-  cardText: { fontSize: 13, color: '#475569', lineHeight: 18 },
-  primaryBtn: { backgroundColor: '#1d4ed8', borderRadius: 10, paddingVertical: 10, paddingHorizontal: 14, alignSelf: 'flex-start' },
-  primaryBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
-  code: { fontFamily: 'Menlo', fontSize: 12, color: '#0f172a', backgroundColor: '#eff6ff', padding: 10, borderRadius: 8 },
-  path: { fontSize: 12, color: '#334155' },
+  title: { fontSize: 34, color: '#0f3b31', fontFamily: fontFamily.serif },
+  hint: { fontSize: 13, color: '#4c5f58', lineHeight: 20, fontFamily: fontFamily.chinese },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 14,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: '#dbe4df',
+    shadowColor: '#13211b',
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+  },
+  cardTitle: { fontSize: 17, color: '#11211b', fontFamily: fontFamily.chineseBold },
+  cardText: { fontSize: 13, color: '#4a5a54', lineHeight: 20, fontFamily: fontFamily.chinese },
+  primaryBtn: {
+    backgroundColor: '#1f5b4c',
+    borderRadius: 12,
+    paddingVertical: 11,
+    paddingHorizontal: 14,
+    alignSelf: 'flex-start',
+  },
+  disabledBtn: { opacity: 0.7 },
+  primaryBtnText: { color: '#fff', fontSize: 13, fontFamily: fontFamily.chineseBold },
+  code: {
+    fontFamily: fontFamily.mono,
+    fontSize: 12,
+    color: '#0f172a',
+    backgroundColor: '#edf3ef',
+    padding: 10,
+    borderRadius: 8,
+  },
+  path: { fontSize: 12, color: '#334155', fontFamily: fontFamily.mono },
 });
