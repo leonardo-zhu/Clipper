@@ -29,8 +29,10 @@ function decodeHtml(str: string): string {
 
 function extractJsString(html: string, variableName: string): string {
   const escaped = variableName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const match = html.match(new RegExp(`var\\s+${escaped}\\s*=\\s*\"([\\s\\S]*?)\";`));
-  return match?.[1]?.trim() ?? '';
+  const doubleQuoteMatch = html.match(new RegExp(`var\\s+${escaped}\\s*=\\s*\"([\\s\\S]*?)\";`));
+  if (doubleQuoteMatch?.[1]) return doubleQuoteMatch[1].trim();
+  const singleQuoteMatch = html.match(new RegExp(`var\\s+${escaped}\\s*=\\s*'([\\s\\S]*?)';`));
+  return singleQuoteMatch?.[1]?.trim() ?? '';
 }
 
 function extractMsgTitle(html: string): string {
@@ -123,7 +125,7 @@ export async function scrapeWxArticle(url: string): Promise<ScrapedArticle> {
 
   const profileSignature = decodeHtml(extractJsString(html, 'profile_signature'));
   const msgCdnUrl = extractJsString(html, 'msg_cdn_url');
-  const coverUrl1x1 = extractJsString(html, 'cdn_url_1_1');
+  const coverUrl1x1 = extractJsString(html, 'cover_url_1_1') || extractJsString(html, 'cdn_url_1_1');
 
   // description priority:
   // 1) <meta name="description" content="...">
