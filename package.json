@@ -13,7 +13,10 @@
     "analyze": "node scripts/analyze.js",
     "check:i18n": "node scripts/check-i18n.js",
     "check:state-flow": "node scripts/check-state-flow.js",
-    "check:all": "pnpm typecheck && pnpm check:i18n && pnpm check:state-flow"
+    "check:all": "pnpm typecheck && pnpm check:i18n && pnpm check:state-flow",
+    "preios": "pnpm check:all",
+    "preandroid": "pnpm check:all",
+    "prestart": "pnpm check:all"
   },
   "dependencies": {
     "@expo-google-fonts/dm-mono": "^0.4.2",
