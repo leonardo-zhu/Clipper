@@ -1,8 +1,8 @@
 import { insertArticle, updateArticle, getArticle } from '@/src/db/queries';
 import { scrapeWxArticle } from './scraper';
-import { generateSummary } from './summarise';
+import { generateSummaryAndGrouping } from './summarise';
 import { useArticlesStore } from '@/src/store/articles';
-import { encodeTags, generateBaseTags } from './tags';
+import { encodeTags, generateBaseTags, parseTags } from './tags';
 
 function uuid(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -72,8 +72,16 @@ async function runSummarisation(id: string) {
     updateArticle(id, { summarising_progress: 55 });
     notify();
 
-    const summary = await generateSummary(current.body);
-    updateArticle(id, { summary, status: 'done', summarising_progress: 100 });
+    const result = await generateSummaryAndGrouping(current.body);
+    const existingTags = parseTags(current.tags_json);
+    const nextTags = [result.primary_group, ...existingTags];
+
+    updateArticle(id, {
+      summary: result.summary,
+      tags_json: encodeTags(nextTags),
+      status: 'done',
+      summarising_progress: 100,
+    });
     notify();
   } catch (e: any) {
     updateArticle(id, { summary: e?.message ?? '摘要生成失败，正文已保存', status: 'error' });
