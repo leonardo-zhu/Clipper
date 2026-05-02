@@ -10,6 +10,7 @@ export const CREATE_ARTICLES = `
     profile_signature TEXT,
     msg_cdn_url TEXT,
     cover_url_1_1 TEXT,
+    tags_json TEXT,
     lang       TEXT,
     ingested_at INTEGER,
     summarising_progress INTEGER NOT NULL DEFAULT 0,
@@ -31,6 +32,7 @@ export interface Article {
   profile_signature: string | null;
   msg_cdn_url: string | null;
   cover_url_1_1: string | null;
+  tags_json: string | null;
   lang: string | null;
   ingested_at: number | null;
   summarising_progress: number;

@@ -22,6 +22,7 @@ export function updateArticle(
       | 'profile_signature'
       | 'msg_cdn_url'
       | 'cover_url_1_1'
+      | 'tags_json'
       | 'lang'
       | 'ingested_at'
       | 'summarising_progress'

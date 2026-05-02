@@ -2,6 +2,7 @@ import { insertArticle, updateArticle, getArticle } from '@/src/db/queries';
 import { scrapeWxArticle } from './scraper';
 import { generateSummary } from './summarise';
 import { useArticlesStore } from '@/src/store/articles';
+import { encodeTags, generateBaseTags } from './tags';
 
 function uuid(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -32,6 +33,7 @@ async function runIngestion(id: string) {
 
     const { title, description, body, source, profileSignature, msgCdnUrl, coverUrl1x1, lang } =
       await scrapeWxArticle(current.url);
+    const baseTags = generateBaseTags({ title, description, source });
 
     updateArticle(id, {
       title,
@@ -41,6 +43,7 @@ async function runIngestion(id: string) {
       profile_signature: profileSignature,
       msg_cdn_url: msgCdnUrl,
       cover_url_1_1: coverUrl1x1,
+      tags_json: encodeTags(baseTags),
       lang,
       status: 'ingested',
       ingested_at: Date.now(),

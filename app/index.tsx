@@ -11,10 +11,12 @@ import { fontFamily } from '@/src/theme/typography';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import { getArticleByUrl, insertArticle, updateArticle } from '@/src/db/queries';
+import { parseTags } from '@/src/lib/tags';
 
 function HomeCard({ item, onPress }: { item: Article; onPress: () => void }) {
   const isSummarising = item.status === 'summarising';
   const progress = Math.max(0, Math.min(100, item.summarising_progress ?? 0));
+  const tags = parseTags(item.tags_json);
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.88}>
@@ -22,6 +24,15 @@ function HomeCard({ item, onPress }: { item: Article; onPress: () => void }) {
       <View style={styles.content}>
         <Text style={styles.title}>{item.title ?? 'Untitled'}</Text>
         {!!item.description ? <Text style={styles.description}>{item.description}</Text> : null}
+        {tags.length ? (
+          <View style={styles.tagRow}>
+            {tags.slice(0, 3).map((tag) => (
+              <View key={tag} style={styles.tagPill}>
+                <Text style={styles.tagText}>{tag}</Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
         {isSummarising ? (
           <View style={styles.progressWrap}>
             <Text style={styles.progressLabel}>{t('home.aiSummaryInProgress')}</Text>
@@ -110,6 +121,7 @@ export default function HomeScreen() {
           profile_signature: row.profile_signature ?? null,
           msg_cdn_url: row.msg_cdn_url ?? null,
           cover_url_1_1: row.cover_url_1_1 ?? null,
+          tags_json: row.tags_json ?? null,
           lang: row.lang ?? null,
           ingested_at: row.ingested_at ?? null,
           summarising_progress: typeof row.summarising_progress === 'number' ? row.summarising_progress : 0,
@@ -287,6 +299,9 @@ const styles = StyleSheet.create({
   content: { padding: 14, gap: 8 },
   title: { fontSize: 23, color: '#101815', fontFamily: fontFamily.serif },
   description: { fontSize: 14, color: '#3e4a45', lineHeight: 22, fontFamily: fontFamily.chinese },
+  tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 2 },
+  tagPill: { backgroundColor: '#eef3ef', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: '#d7e1db' },
+  tagText: { fontSize: 11, color: '#315449', fontFamily: fontFamily.mono },
   progressWrap: { marginTop: 4, gap: 8 },
   progressLabel: { color: '#476a5f', fontSize: 12, fontFamily: fontFamily.mono, letterSpacing: 0.4 },
   progressTrack: { width: '100%', height: 5, backgroundColor: '#dae6df', borderRadius: 999 },
