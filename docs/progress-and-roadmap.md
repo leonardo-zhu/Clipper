@@ -74,6 +74,39 @@ pnpm analyze /path/to/clipper-snapshot.json
 ### 验证
 - `pnpm typecheck` 已通过
 
+## 本轮更新（2026-05-02，Session B Round 11 UI Polish）
+
+### 已完成
+- Home 视觉细化（对齐 design token）：
+  - 背景色、卡片圆角、边框、阴影层级统一
+  - 空状态文案与主按钮尺寸按设计收敛
+  - 标签筛选条与标签 pill 字号/行高统一，降低中文视觉膨胀
+  - 导入弹层（sheet）字体体系、边框、遮罩透明度优化
+- Ingestion 动效增强：
+  - 进度条新增 shimmer 滚动层，强化 “AI generation summary 正在进行中” 反馈
+  - 页面颜色体系与 Home/Library 同步
+- Library 视觉同步：
+  - Collection 卡片层级与 Home 保持一致
+  - 标签 chip 与标题比例微调，减少错位感
+
+### 验证
+- `pnpm typecheck` 已通过
+
+## 本轮更新（2026-05-02，Session B Round 12 Full UI Finish）
+
+### 已完成
+- Ingestion 页面收尾：
+  - 卡片层级、CTA 比例、标题层次与背景氛围光斑统一
+  - 进度动效（shimmer）保留并强化“AI 生成中”感知
+- Article 页面收尾：
+  - 标签区字体、chip 密度、输入/按钮样式统一到 V2 视觉语言
+  - WebView 外层背景与其它主页面统一
+- Library 页面收尾：
+  - 空状态按钮文案接入 i18n（`library.backHome`）
+
+### 验证
+- `pnpm typecheck` 已通过
+
 ## 本轮更新（2026-05-02，Round 9 i18n Boundary）
 
 ### 已完成
@@ -187,3 +220,21 @@ pnpm analyze /path/to/clipper-snapshot.json
 - 新增快照迁移脚本：`pnpm migrate:snapshot <input.json> [output.json]`
 - 迁移内容：状态值映射、`cdn_url_1_1 -> cover_url_1_1` 兼容、标签去重规范化、空白文本清洗。
 - 输出结构新增 `schemaVersion: 2` 与 `migratedAt`，便于后续导入追踪。
+
+### Design Contract（强约束）
+- 新增 `docs/design-system-contract.md`，把 `DESIGN.md` 与各 screen `code.html` 定义为 V2 UI 唯一视觉真源。
+- 规则升级：颜色、字体、间距、圆角必须按 token/HTML 值实现，禁止自行推断或“风格化调整”。
+- 详情页若设计稿无标签编辑控件，则必须移除相关 UI（add/quick-add/tag editor）。
+
+### Round 13（Design Fidelity Hardening）
+- 新增设计强约束文档：`docs/design-system-contract.md`，将 `DESIGN.md` + screen `code.html` 设为唯一视觉真源。
+- Router/底部导航继续收口：移除与设计稿无关入口，底部导航改为 Home/Library 双项并统一到设计稿结构。
+- 详情页移除未在设计稿出现的标签编辑控件（add tag / quick add / tag editor），避免产品范围漂移。
+- Home 标签条间距改为稳定生效方案（`ItemSeparatorComponent`），修复 RN `gap` 不稳定导致的视觉偏差。
+- Library 页面按 `library_collections_updated/code.html` 重构：TopAppBar、Collection 网格、Recent Collections 列表结构对齐。
+- Library 列表新增左滑删除交互，删除操作连通现有数据层 `removeArticle`。
+- 修正 icon 偏差：删除图标改为垃圾桶，Sort 图标替换为更接近高保真语义的实现。
+- Library 列表卡片密度（内外间距、图文比例、标题/描述行高）收紧到接近高保真节奏。
+
+### 验证
+- `pnpm check:all` / `pnpm typecheck` 已通过。

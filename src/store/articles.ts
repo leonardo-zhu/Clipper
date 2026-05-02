@@ -6,6 +6,7 @@ interface ArticlesState {
   articles: Article[];
   loaded: boolean;
   loadArticles: () => void;
+  getArticleById: (id: string) => Article | null;
   refreshArticle: (id: string) => Article | null;
   removeArticle: (id: string) => void;
   removeFailedArticles: () => void;
@@ -18,6 +19,10 @@ export const useArticlesStore = create<ArticlesState>((set, get) => ({
   loadArticles: () => {
     const articles = getAllArticles();
     set({ articles, loaded: true });
+  },
+
+  getArticleById: (id: string) => {
+    return getArticle(id);
   },
 
   refreshArticle: (id: string) => {

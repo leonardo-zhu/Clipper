@@ -1,19 +1,18 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet, Alert, Linking, Text, TouchableOpacity, TextInput } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
-import { WebView } from 'react-native-webview';
+import { useEffect, useMemo, useState } from 'react';
+import { View, StyleSheet, ScrollView, Text, Pressable, Image } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useArticlesStore } from '@/src/store/articles';
 import type { Article } from '@/src/db/schema';
-import { parseTags, splitTags, encodeTags, topTagsFromTagSets } from '@/src/lib/tags';
-import { updateArticle } from '@/src/db/queries';
-import { fontFamily } from '@/src/theme/typography';
-import { t } from '@/src/i18n';
+import { t, tf } from '@/src/i18n';
 
 export default function ArticleDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { articles, refreshArticle, removeArticle } = useArticlesStore();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { refreshArticle } = useArticlesStore();
   const [article, setArticle] = useState<Article | null>(null);
-  const [tagInput, setTagInput] = useState('');
 
   useEffect(() => {
     if (id) {
@@ -33,295 +32,237 @@ export default function ArticleDetailScreen() {
     return () => clearInterval(timer);
   }, [article, id, refreshArticle]);
 
-  const openInWeChatFirst = useCallback(async (url: string) => {
-    const candidates = [url, 'weixin://'];
-    for (const target of candidates) {
-      try {
-        await Linking.openURL(target);
-        return;
-      } catch {
-        continue;
-      }
-    }
-    Alert.alert('无法打开链接');
-  }, []);
+  const statusText = useMemo(() => {
+    if (!article) return null;
+    if (article.status === 'ingesting') return t('article.processingIngesting');
+    if (article.status === 'summarising') return t('article.processingSummarising');
+    if (article.status === 'queued') return t('article.processingQueued');
+    if (article.status === 'ingested') return t('article.processingIngested');
+    return null;
+  }, [article]);
 
-  const tags = useMemo(() => parseTags(article?.tags_json), [article?.tags_json]);
-  const { base: baseTags, ai: aiTags } = useMemo(() => splitTags(tags), [tags]);
-  const quickTags = useMemo(() => {
-    const allTagSets = articles.map((a) => parseTags(a.tags_json));
-    return topTagsFromTagSets(allTagSets, 10).filter((t) => !tags.includes(t));
-  }, [articles, tags]);
+  const readMinutes = useMemo(() => {
+    if (!article) return 1;
+    return Math.max(
+      1,
+      Math.ceil(((article.body ?? article.summary ?? article.description ?? '').replace(/<[^>]+>/g, '').length || 600) / 380),
+    );
+  }, [article]);
 
-  const saveTags = useCallback((nextTags: string[]) => {
-    if (!article) return;
-    updateArticle(article.id, { tags_json: encodeTags(nextTags) });
-    const updated = refreshArticle(article.id);
-    if (updated) setArticle(updated);
-  }, [article, refreshArticle]);
+  const parsedSummary = useMemo(() => {
+    const raw = article?.summary?.trim() ?? '';
+    if (!raw) return { lead: '', bullets: [] as string[] };
 
-  const addTag = useCallback(() => {
-    const next = tagInput.trim();
-    if (!next) return;
-    if (tags.includes(next)) {
-      setTagInput('');
-      return;
-    }
-    saveTags([...tags, next]);
-    setTagInput('');
-  }, [saveTags, tagInput, tags]);
+    const marker = 'KEY TAKEAWAYS';
+    const idx = raw.indexOf(marker);
+    if (idx < 0) return { lead: raw, bullets: [] as string[] };
 
-  const addTagDirect = useCallback((next: string) => {
-    if (!next.trim()) return;
-    if (tags.includes(next)) return;
-    saveTags([...tags, next]);
-  }, [saveTags, tags]);
+    const lead = raw.slice(0, idx).trim();
+    const tail = raw.slice(idx + marker.length);
+    const bullets = tail
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.startsWith('• '))
+      .map((line) => line.replace(/^•\s*/, '').trim())
+      .filter(Boolean)
+      .slice(0, 3);
 
-  const removeTag = useCallback((tag: string) => {
-    saveTags(tags.filter((t) => t !== tag));
-  }, [saveTags, tags]);
+    return { lead: lead || raw, bullets };
+  }, [article?.summary]);
 
-  const summaryBlock = article?.status === 'done' && article.summary
-    ? `<section class="panel panel-summary">
-        <div class="panel-title">AI 摘要</div>
-        <div class="panel-content">${article.summary}</div>
-      </section>`
-    : '';
-
-  const errorBlock = article?.status === 'error'
-    ? `<section class="panel panel-error">
-        <div class="panel-title">处理失败</div>
-        <div class="panel-content">${article.summary ?? '未知错误'}</div>
-      </section>`
-    : '';
-
-  const statusBlock = article && (article.status === 'queued' || article.status === 'ingesting' || article.status === 'ingested' || article.status === 'summarising')
-    ? `<section class="panel panel-status">
-        <div class="panel-title">处理中</div>
-        <div class="panel-content">
-          ${article.status === 'ingesting' ? '正在抓取文章...' : ''}
-          ${article.status === 'summarising' ? '正在生成摘要...' : ''}
-          ${article.status === 'queued' ? '等待处理...' : ''}
-          ${article.status === 'ingested' ? '抓取已完成，摘要处理中...' : ''}
-        </div>
-      </section>`
-    : '';
-
-  const htmlContent = useMemo(() => {
-    if (!article) {
-      return `<!DOCTYPE html><html><body style="display:flex;justify-content:center;align-items:center;height:100vh;color:#999;font-size:16px;">加载中...</body></html>`;
-    }
-
-    return `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<style>
-  :root {
-    --bg: #ffffff;
-    --card: #ffffff;
-    --text: #111827;
-    --line: #e5e7eb;
-    --brand: #2563eb;
-    --brand-soft: #f8fafc;
-    --error: #dc2626;
-    --warn: #d97706;
+  if (!article) {
+    return (
+      <View style={styles.loadingWrap}>
+        <Text style={styles.loadingText}>{t('article.loading')}</Text>
+      </View>
+    );
   }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; -webkit-overflow-scrolling: touch; background: var(--bg); }
-  body {
-    padding: 0 0 24px;
-    -webkit-text-size-adjust: none;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  }
-  img { max-width: 100%; height: auto; border-radius: 3px; }
-  .title-wrap { padding: 16px 16px 0; }
-  .title { font-size: 22px; font-weight: 700; line-height: 1.45; margin: 0; color: #111827; }
-  .meta {
-    margin-top: 10px;
-    font-size: 13px;
-    color: #9ca3af;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-  .main { padding: 14px 16px 0; display: grid; gap: 12px; }
-  .cover { width: 100%; height: auto; border-radius: 10px; }
-  .panel {
-    border-radius: 10px;
-    padding: 12px;
-    border: 1px solid var(--line);
-    background: var(--card);
-  }
-  .panel-title {
-    font-size: 12px;
-    font-weight: 700;
-    margin-bottom: 6px;
-    letter-spacing: 0.2px;
-  }
-  .panel-content {
-    font-size: 16px;
-    line-height: 1.75;
-    color: #1e293b;
-  }
-  .panel-summary { background: #f8fafc; }
-  .panel-summary .panel-title { color: var(--brand); }
-  .panel-error { border-color: #fecaca; background: #fef2f2; }
-  .panel-error .panel-title, .panel-error .panel-content { color: var(--error); }
-  .panel-status { border-color: #fde68a; background: #fffbeb; }
-  .panel-status .panel-title, .panel-status .panel-content { color: var(--warn); }
-  .article-card {
-    border-radius: 0;
-    padding: 0;
-    border: none;
-    background: #fff;
-    overflow: hidden;
-  }
-  .article-card .app-body { transform: translateZ(0); backface-visibility: hidden; }
-  .article-card .app-body * { max-width: 100% !important; }
-  .actions {
-    position: sticky;
-    bottom: 10px;
-    margin: 10px 14px 0;
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(8px);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 10px;
-    display: flex;
-    gap: 10px;
-  }
-  .btn {
-    flex: 1;
-    border: none;
-    border-radius: 10px;
-    padding: 12px;
-    text-align: center;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-  }
-  .btn-open { background: var(--brand); color: #fff; }
-  .btn-delete { background: #fff; color: #dc2626; border: 1px solid #fecaca; }
-</style>
-</head>
-<body>
-  <header class="title-wrap">
-    <h1 class="title">${article.title ?? '抓取中...'}</h1>
-    <div class="meta">
-      ${article.source ? `<span>${article.source}</span>` : ''}
-      <span>${new Date(article.created_at).toLocaleString('zh-CN')}</span>
-    </div>
-  </header>
-
-  <main class="main">
-    ${article.msg_cdn_url ? `<img class="cover" src="${article.msg_cdn_url}" />` : ''}
-    ${article.description ? `<section class="panel"><div class="panel-title">Description</div><div class="panel-content">${article.description}</div></section>` : ''}
-    ${summaryBlock}
-    ${errorBlock}
-    ${statusBlock}
-    ${article.body ? `<section class="article-card"><div class="app-body">${article.body}</div></section>` : ''}
-  </main>
-
-  <footer class="actions">
-    <button class="btn btn-open" onclick="window.ReactNativeWebView.postMessage('open')">打开原文</button>
-    <button class="btn btn-delete" onclick="window.ReactNativeWebView.postMessage('delete')">删除文章</button>
-  </footer>
-</body>
-</html>`;
-  }, [article, summaryBlock, errorBlock, statusBlock]);
-
-  const handleWebViewMessage = useCallback((event: any) => {
-    if (!article) return;
-    const action = event.nativeEvent.data;
-    if (action === 'open' && article.url) {
-      openInWeChatFirst(article.url);
-    } else if (action === 'delete') {
-      Alert.alert('确认删除', '删除后无法恢复', [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '删除',
-          style: 'destructive',
-          onPress: () => removeArticle(article.id),
-        },
-      ]);
-    }
-  }, [article, openInWeChatFirst, removeArticle]);
 
   return (
     <View style={styles.container}>
-      <View style={styles.tagPanel}>
-        <Text style={styles.tagTitle}>{t('article.tags')}</Text>
-        <View style={styles.tagRow}>
-          {baseTags.map((tag) => (
-            <TouchableOpacity key={`base-${tag}`} style={styles.tagPill} onPress={() => removeTag(tag)}>
-              <Text style={styles.tagText}>{tag} ×</Text>
-            </TouchableOpacity>
-          ))}
-          {aiTags.map((tag) => (
-            <TouchableOpacity key={`ai-${tag}`} style={styles.tagPillAi} onPress={() => removeTag(tag)}>
-              <Text style={styles.tagTextAi}>{tag} ×</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        <View style={styles.tagComposer}>
-          <TextInput
-            value={tagInput}
-            onChangeText={setTagInput}
-            placeholder={t('article.addTag')}
-            style={styles.tagInput}
-            onSubmitEditing={addTag}
-            returnKeyType="done"
-          />
-          <TouchableOpacity style={styles.addBtn} onPress={addTag}>
-            <Text style={styles.addBtnText}>{t('article.add')}</Text>
-          </TouchableOpacity>
-        </View>
-        {quickTags.length ? (
-          <>
-            <Text style={styles.quickTitle}>{t('article.quickAdd')}</Text>
-            <View style={styles.tagRow}>
-              {quickTags.map((tag) => (
-                <TouchableOpacity key={`quick-${tag}`} style={styles.quickPill} onPress={() => addTagDirect(tag)}>
-                  <Text style={styles.quickText}>+ {tag}</Text>
-                </TouchableOpacity>
-              ))}
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[
+          styles.content,
+          {
+            paddingBottom: 20 + 76 + insets.bottom,
+          },
+        ]}
+      >
+
+        <View style={styles.titleWrap}>
+          <Text style={styles.kicker}>{t('article.kicker')}</Text>
+          <Text style={styles.title}>{article.title ?? t('article.titlePending')}</Text>
+          <View style={styles.meta}>
+            <View style={styles.metaItem}>
+              <Ionicons name="calendar-outline" size={17} color="#4b5563" />
+              <Text style={styles.metaText}>{new Date(article.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</Text>
             </View>
-          </>
-        ) : null}
+            <View style={styles.metaItem}>
+              <Ionicons name="time-outline" size={17} color="#4b5563" />
+              <Text style={styles.metaText}>{tf('home.minRead', { count: readMinutes })}</Text>
+            </View>
+            <View style={styles.metaItem}>
+              <Ionicons name="apps-outline" size={17} color="#35584d" />
+              <Text style={styles.metaCategory}>{article.source || t('article.defaultCategory')}</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.main}>
+          {article.msg_cdn_url ? <Image source={{ uri: article.msg_cdn_url }} style={styles.cover} resizeMode="cover" /> : null}
+
+          {article.status === 'done' && article.summary ? (
+            <View style={[styles.panel, styles.panelSummary]}>
+              <View style={styles.summaryHead}>
+                <View style={styles.summaryTitleWrap}>
+                  <Ionicons name="sparkles" size={18} color="#35584d" />
+                  <Text style={styles.panelSummaryTitle}>{t('article.summaryTitle')}</Text>
+                </View>
+                <Ionicons name="sparkles" size={48} color="rgba(95, 99, 104, 0.22)" />
+              </View>
+              <Text style={styles.summaryLead}>{parsedSummary.lead}</Text>
+              {parsedSummary.bullets.length > 0 ? (
+                <>
+                  <Text style={styles.summaryKicker}>{t('article.keyTakeaways')}</Text>
+                  <View style={styles.summaryList}>
+                    {parsedSummary.bullets.map((item, index) => (
+                      <View key={`${index}-${item}`} style={styles.summaryItem}>
+                        <Ionicons name="ellipse" size={8} color="#35584d" style={styles.summaryBulletIcon} />
+                        <Text style={styles.summaryItemText}>{item}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </>
+              ) : null}
+            </View>
+          ) : null}
+
+          {article.status === 'error' ? (
+            <View style={[styles.panel, styles.panelError]}>
+              <Text style={[styles.panelTitle, styles.errorText]}>{t('article.errorTitle')}</Text>
+              <Text style={[styles.panelContent, styles.errorText]}>{article.summary ?? t('common.unknownError')}</Text>
+            </View>
+          ) : null}
+
+          {statusText ? (
+            <View style={[styles.panel, styles.panelStatus]}>
+              <Text style={[styles.panelTitle, styles.statusText]}>{t('article.processingTitle')}</Text>
+              <Text style={[styles.panelContent, styles.statusText]}>{statusText}</Text>
+            </View>
+          ) : null}
+        </View>
+      </ScrollView>
+
+      <View style={[styles.footer, { paddingBottom: Math.max(10, insets.bottom + 8) }]}>
+        <Pressable
+          style={styles.readButton}
+          onPress={() => router.push(`/article/${article.id}/reader`)}
+        >
+          <Text style={styles.readButtonText}>{t('article.readOriginal')}</Text>
+        </Pressable>
       </View>
-      <WebView
-        source={{ html: htmlContent }}
-        style={styles.webview}
-        onMessage={handleWebViewMessage}
-        showsVerticalScrollIndicator={false}
-        decelerationRate="normal"
-        overScrollMode="never"
-        contentInsetAdjustmentBehavior="never"
-      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f3f7ff' },
-  tagPanel: { backgroundColor: '#f4f7f4', borderBottomWidth: 1, borderBottomColor: '#dce5e0', paddingHorizontal: 12, paddingTop: 10, paddingBottom: 10, gap: 8 },
-  tagTitle: { fontSize: 13, color: '#355249', fontFamily: fontFamily.mono },
-  tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, alignItems: 'center' },
-  tagPill: { backgroundColor: '#eef3ef', borderRadius: 999, paddingHorizontal: 10, minHeight: 24, borderWidth: 1, borderColor: '#d7e1db', alignItems: 'center', justifyContent: 'center' },
-  tagText: { fontSize: 10, lineHeight: 12, color: '#315449', fontFamily: fontFamily.chinese, includeFontPadding: false, textAlign: 'center' },
-  tagPillAi: { backgroundColor: '#f5efe6', borderRadius: 999, paddingHorizontal: 10, minHeight: 24, borderWidth: 1, borderColor: '#e6d5bf', alignItems: 'center', justifyContent: 'center' },
-  tagTextAi: { fontSize: 10, lineHeight: 12, color: '#7a5a32', fontFamily: fontFamily.chinese, includeFontPadding: false, textAlign: 'center' },
-  tagComposer: { flexDirection: 'row', gap: 8, alignItems: 'center' },
-  quickTitle: { fontSize: 12, color: '#6c7e77', fontFamily: fontFamily.chinese },
-  quickPill: { backgroundColor: '#ffffff', borderRadius: 999, paddingHorizontal: 10, minHeight: 24, borderWidth: 1, borderColor: '#d8e1dc', alignItems: 'center', justifyContent: 'center' },
-  quickText: { fontSize: 10, lineHeight: 12, color: '#3b5c52', fontFamily: fontFamily.chinese, includeFontPadding: false, textAlign: 'center' },
-  tagInput: { flex: 1, backgroundColor: '#fff', borderWidth: 1, borderColor: '#d4ddd8', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 8, fontFamily: fontFamily.chinese, fontSize: 13 },
-  addBtn: { backgroundColor: '#0f3b31', borderRadius: 10, paddingHorizontal: 12, minHeight: 36, alignItems: 'center', justifyContent: 'center' },
-  addBtnText: { color: '#fff', fontFamily: fontFamily.chineseBold, fontSize: 13 },
-  webview: { flex: 1, backgroundColor: '#f3f7ff' },
+  container: { flex: 1, backgroundColor: '#f9faf7' },
+  scroll: { flex: 1 },
+  content: { paddingBottom: 20 },
+  loadingWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f9faf7' },
+  loadingText: { fontSize: 16, color: '#687076', fontFamily: 'Sora_400Regular' },
+  titleWrap: { paddingHorizontal: 20, paddingTop: 20 },
+  kicker: {
+    fontFamily: 'DMMono_500Medium',
+    fontSize: 11,
+    letterSpacing: 1,
+    color: '#35584d',
+    marginBottom: 10,
+  },
+  title: {
+    fontFamily: 'DMSerifDisplay_400Regular',
+    fontSize: 24,
+    lineHeight: 31,
+    color: '#1a1c1b',
+  },
+  meta: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+    marginTop: 14,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  metaText: { fontSize: 13, color: '#4b5563', fontFamily: 'Sora_400Regular' },
+  metaCategory: { fontSize: 13, color: '#35584d', fontFamily: 'Sora_600SemiBold' },
+  main: { paddingHorizontal: 20, paddingTop: 16, gap: 14 },
+  cover: { width: '100%', aspectRatio: 1280 / 544, borderRadius: 12, backgroundColor: '#e5e7eb' },
+  panel: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.06)',
+    padding: 14,
+    backgroundColor: 'rgba(255,255,255,0.74)',
+  },
+  panelTitle: { fontFamily: 'DMMono_500Medium', fontSize: 11, marginBottom: 6, letterSpacing: 0.2 },
+  panelContent: { fontFamily: 'Sora_400Regular', fontSize: 14, lineHeight: 22 },
+  panelSummary: { backgroundColor: '#f8fafc' },
+  summaryHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  summaryTitleWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  panelSummaryTitle: { fontFamily: 'Sora_600SemiBold', fontSize: 14, color: '#1f3f37' },
+  summaryLead: { marginTop: 8, fontFamily: 'Sora_400Regular', fontSize: 15, lineHeight: 24, color: '#4b5563' },
+  summaryKicker: {
+    marginTop: 14,
+    fontFamily: 'DMMono_500Medium',
+    fontSize: 12,
+    letterSpacing: 1.2,
+    color: '#5d7a72',
+  },
+  summaryList: { marginTop: 8, gap: 10 },
+  summaryItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  summaryBulletIcon: {
+    marginTop: 8,
+  },
+  summaryItemText: {
+    flex: 1,
+    fontFamily: 'Sora_400Regular',
+    fontSize: 15,
+    lineHeight: 24,
+    color: '#1f2937',
+  },
+  panelError: { backgroundColor: '#fef2f2', borderColor: '#fecaca' },
+  errorText: { color: '#dc2626' },
+  panelStatus: { backgroundColor: '#fffbeb', borderColor: '#fde68a' },
+  statusText: { color: '#d97706' },
+  footer: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    bottom: 0,
+    backgroundColor: 'transparent',
+  },
+  readButton: {
+    backgroundColor: '#456f64',
+    borderRadius: 999,
+    minHeight: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  readButtonText: { color: '#fff', fontFamily: 'Sora_600SemiBold', fontSize: 16 },
 });

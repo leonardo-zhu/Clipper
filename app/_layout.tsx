@@ -10,6 +10,7 @@ import { NotoSansSC_400Regular, NotoSansSC_700Bold } from '@expo-google-fonts/no
 import { processUrl } from '@/src/lib/queue';
 import { getDB } from '@/src/db';
 import { View, ActivityIndicator } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function RootLayout() {
   const router = useRouter();
@@ -44,28 +45,48 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="auto" />
       <Stack
         screenOptions={{
-          headerStyle: { backgroundColor: '#f5f5f5' },
-          headerTintColor: '#333',
-          headerBackTitle: '返回',
+          headerStyle: { backgroundColor: '#f9faf7' },
+          headerTintColor: '#1f2e29',
+          headerBackTitle: 'Back',
+          headerShadowVisible: false,
+          headerTitleStyle: {
+            fontFamily: 'DMMono_500Medium',
+            fontSize: 12,
+          },
         }}
       >
-        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="ingestion/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="library" options={{ title: 'Library' }} />
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="library" options={{ headerShown: false }} />
         <Stack.Screen
           name="article/[id]"
           options={{
-            title: '文章详情',
-            headerBackButtonDisplayMode: 'minimal',
-            headerShadowVisible: false,
+            title: 'Clipper',
+            headerTitleStyle: {
+              fontFamily: 'DMSerifDisplay_400Regular',
+              fontSize: 26,
+              color: '#0f4a3f',
+            },
           }}
         />
-        <Stack.Screen name="storage" options={{ title: '存储管理' }} />
+        <Stack.Screen
+          name="article/[id]/reader"
+          options={{
+            title: 'Clipper',
+            headerTitleStyle: {
+              fontFamily: 'DMSerifDisplay_400Regular',
+              fontSize: 26,
+              color: '#0f4a3f',
+            },
+          }}
+        />
+        <Stack.Screen name="storage" options={{ title: 'STORAGE' }} />
       </Stack>
-    </>
+    </GestureHandlerRootView>
   );
 }

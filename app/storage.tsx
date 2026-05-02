@@ -109,79 +109,82 @@ export default function StorageScreen() {
   }, [loadArticles]);
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>{t('storage.title')}</Text>
-      <Text style={styles.hint}>{t('storage.hint')}</Text>
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.header}>
+          <Text style={styles.title}>{t('storage.title')}</Text>
+          <Text style={styles.hint}>{t('storage.hint')}</Text>
+        </View>
 
-      <View style={[styles.card, styles.importCard]}>
-        <Text style={styles.cardTitle}>{t('storage.importCardTitle')}</Text>
-        <Text style={styles.cardText}>{t('storage.importCardText')}</Text>
-        <TouchableOpacity style={[styles.primaryBtn, importing ? styles.disabledBtn : null]} onPress={importSnapshot} disabled={importing}>
-          <Text style={styles.primaryBtnText}>{importing ? t('home.importing') : t('storage.importAction')}</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>{t('storage.importCardTitle')}</Text>
+          <Text style={styles.cardText}>{t('storage.importCardText')}</Text>
+          <TouchableOpacity style={[styles.primaryBtn, importing ? styles.disabledBtn : null]} onPress={importSnapshot} disabled={importing}>
+            <Text style={styles.primaryBtnText}>{importing ? t('home.importing') : t('storage.importAction')}</Text>
+          </TouchableOpacity>
+        </View>
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>{t('storage.exportCardTitle')}</Text>
-        <Text style={styles.cardText}>{t('storage.exportCardText')}</Text>
-        <TouchableOpacity style={[styles.primaryBtn, exporting ? styles.disabledBtn : null]} onPress={exportSnapshot} disabled={exporting}>
-          <Text style={styles.primaryBtnText}>{exporting ? t('storage.exporting') : t('storage.exportAction')}</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>{t('storage.exportCardTitle')}</Text>
+          <Text style={styles.cardText}>{t('storage.exportCardText')}</Text>
+          <TouchableOpacity style={[styles.primaryBtn, exporting ? styles.disabledBtn : null]} onPress={exportSnapshot} disabled={exporting}>
+            <Text style={styles.primaryBtnText}>{exporting ? t('storage.exporting') : t('storage.exportAction')}</Text>
+          </TouchableOpacity>
+        </View>
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>{t('storage.macroCommandTitle')}</Text>
-        <Text style={styles.code}>pnpm analyze /path/to/clipper-snapshot.json</Text>
-        {lastPath ? (
-          <>
-            <Text style={styles.cardText}>{t('storage.lastExport')}</Text>
-            <Text style={styles.path}>{lastPath}</Text>
-          </>
-        ) : null}
-      </View>
-    </ScrollView>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>{t('storage.macroCommandTitle')}</Text>
+          <Text style={styles.code}>pnpm analyze /path/to/clipper-snapshot.json</Text>
+          {lastPath ? (
+            <>
+              <Text style={styles.cardText}>{t('storage.lastExport')}</Text>
+              <Text style={styles.path}>{lastPath}</Text>
+            </>
+          ) : null}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f4f7f4' },
-  content: { padding: 16, gap: 12, paddingBottom: 40 },
-  title: { fontSize: 34, color: '#0f3b31', fontFamily: fontFamily.serif },
-  hint: { fontSize: 13, color: '#4c5f58', lineHeight: 20, fontFamily: fontFamily.chinese },
+  container: { flex: 1, backgroundColor: '#f9faf7' },
+  content: { padding: 16, gap: 12, paddingBottom: 96 },
+  header: { gap: 6, paddingTop: 4, paddingBottom: 2 },
+  title: { fontSize: 33, color: '#0f3b31', fontFamily: fontFamily.serif },
+  hint: { fontSize: 13, color: '#4c5f58', lineHeight: 20, fontFamily: fontFamily.sans },
   card: {
     backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 14,
+    borderRadius: 18,
+    padding: 15,
     gap: 10,
     borderWidth: 1,
-    borderColor: '#dbe4df',
+    borderColor: '#dfe4e1',
     shadowColor: '#13211b',
     shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
   },
-  importCard: {
-    borderColor: '#cfe0d7',
-    backgroundColor: '#fbfefc',
-  },
-  cardTitle: { fontSize: 17, color: '#11211b', fontFamily: fontFamily.chineseBold },
-  cardText: { fontSize: 13, color: '#4a5a54', lineHeight: 20, fontFamily: fontFamily.chinese },
+  cardTitle: { fontSize: 21, color: '#11211b', fontFamily: fontFamily.serif },
+  cardText: { fontSize: 13, color: '#4a5a54', lineHeight: 20, fontFamily: fontFamily.sans },
   primaryBtn: {
-    backgroundColor: '#1f5b4c',
+    backgroundColor: '#0f3b31',
     borderRadius: 12,
-    paddingVertical: 11,
+    paddingVertical: 10,
     paddingHorizontal: 14,
     alignSelf: 'flex-start',
   },
   disabledBtn: { opacity: 0.7 },
-  primaryBtnText: { color: '#fff', fontSize: 13, fontFamily: fontFamily.chineseBold },
+  primaryBtnText: { color: '#fff', fontSize: 12, letterSpacing: 0.5, fontFamily: fontFamily.mono },
   code: {
     fontFamily: fontFamily.mono,
     fontSize: 12,
     color: '#0f172a',
-    backgroundColor: '#edf3ef',
+    backgroundColor: '#eff4f1',
     padding: 10,
-    borderRadius: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#dce4df',
   },
-  path: { fontSize: 12, color: '#334155', fontFamily: fontFamily.mono },
+  path: { fontSize: 12, color: '#334155', fontFamily: fontFamily.mono, lineHeight: 18 },
 });
