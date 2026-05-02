@@ -68,3 +68,18 @@ pnpm analyze /path/to/clipper-snapshot.json
 1. 导入流程内联化：不离开 Home 也能直接完成文件导入（可选）
 2. 标签管理：预设基础标签 + AI 标签并存策略与 UI 展示
 3. Ingestion / Summarising 阶段动效继续贴近设计稿（进度与状态反馈细化）
+
+## 本轮更新（2026-05-02，Round 3 UX）
+
+### 已完成
+- Home `+` 弹层新增“直接导入 JSON”能力：
+  - 不再强制跳转 Storage 才能导入
+  - 导入后直接刷新首页列表并给出新增/更新/跳过统计
+- Ingestion 页面状态反馈增强：
+  - 增加抓取说明文案（title/description/cover metadata）
+  - 补齐占位封面与状态占位文案
+  - 在 summarising 阶段显示进度条与状态提示
+  - 视觉样式与 Home/Library 统一（色彩/圆角/边框）
+
+### 验证
+- `pnpm typecheck` 已通过

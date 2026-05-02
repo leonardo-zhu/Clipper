@@ -3,10 +3,14 @@ import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, RefreshContr
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useArticlesStore } from '@/src/store/articles';
 import type { Article } from '@/src/db/schema';
+import type { ArticleStatus } from '@/src/db/schema';
 import { t } from '@/src/i18n';
 import { processUrl } from '@/src/lib/queue';
 import { AppIcon } from '@/src/components/AppIcon';
 import { fontFamily } from '@/src/theme/typography';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system/legacy';
+import { getArticleByUrl, insertArticle, updateArticle } from '@/src/db/queries';
 
 function HomeCard({ item, onPress }: { item: Article; onPress: () => void }) {
   const isSummarising = item.status === 'summarising';
@@ -37,6 +41,7 @@ export default function HomeScreen() {
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [link, setLink] = useState('');
+  const [importing, setImporting] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -61,6 +66,81 @@ export default function HomeScreen() {
     closeAddMenu();
     router.push(`/ingestion/${id}`);
   }, [closeAddMenu, link, router]);
+
+  const normalizeStatus = (status: string): ArticleStatus => {
+    if (status === 'pending') return 'queued';
+    if (status === 'fetching') return 'ingesting';
+    if (status === 'queued' || status === 'ingesting' || status === 'ingested' || status === 'summarising' || status === 'done' || status === 'error') {
+      return status;
+    }
+    return 'queued';
+  };
+
+  const importSnapshot = useCallback(async () => {
+    try {
+      setImporting(true);
+      const picked = await DocumentPicker.getDocumentAsync({
+        type: 'application/json',
+        multiple: false,
+        copyToCacheDirectory: true,
+      });
+      if (picked.canceled) return;
+      if (!picked.assets?.length) throw new Error('未选择文件或文件不可读取');
+
+      const raw = await FileSystem.readAsStringAsync(picked.assets[0].uri, { encoding: FileSystem.EncodingType.UTF8 });
+      const payload = JSON.parse(raw) as { articles?: Partial<Article>[] };
+      const rows = Array.isArray(payload.articles) ? payload.articles : [];
+
+      let inserted = 0;
+      let updated = 0;
+      let skipped = 0;
+
+      for (const row of rows) {
+        if (!row.url || typeof row.url !== 'string') {
+          skipped++;
+          continue;
+        }
+        const existed = getArticleByUrl(row.url);
+        const patch = {
+          title: row.title ?? null,
+          description: row.description ?? null,
+          body: row.body ?? null,
+          summary: row.summary ?? null,
+          source: row.source ?? null,
+          profile_signature: row.profile_signature ?? null,
+          msg_cdn_url: row.msg_cdn_url ?? null,
+          cover_url_1_1: row.cover_url_1_1 ?? null,
+          lang: row.lang ?? null,
+          ingested_at: row.ingested_at ?? null,
+          summarising_progress: typeof row.summarising_progress === 'number' ? row.summarising_progress : 0,
+          status: normalizeStatus((row.status as string) ?? 'queued'),
+        } as const;
+
+        if (existed) {
+          updateArticle(existed.id, patch);
+          updated++;
+        } else {
+          const id = row.id && typeof row.id === 'string' ? row.id : `import-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+          insertArticle({
+            id,
+            url: row.url,
+            status: patch.status,
+            created_at: typeof row.created_at === 'number' ? row.created_at : Date.now(),
+          });
+          updateArticle(id, patch);
+          inserted++;
+        }
+      }
+
+      loadArticles();
+      closeAddMenu();
+      Alert.alert('导入完成', `新增 ${inserted} 篇，更新 ${updated} 篇，跳过 ${skipped} 条`);
+    } catch (err: any) {
+      Alert.alert('导入失败', err?.message ?? '未知错误');
+    } finally {
+      setImporting(false);
+    }
+  }, [closeAddMenu, loadArticles]);
 
   return (
     <View style={styles.container}>
@@ -138,14 +218,12 @@ export default function HomeScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.sheetAction}
-                  onPress={() => {
-                    closeAddMenu();
-                    router.push('/storage');
-                  }}
+                  onPress={importSnapshot}
+                  disabled={importing}
                 >
                   <View style={styles.sheetActionInner}>
                     <AppIcon name="download" size={18} color="#1a3029" />
-                    <Text style={styles.sheetActionText}>导入 Snapshot JSON</Text>
+                    <Text style={styles.sheetActionText}>{importing ? '导入中...' : '导入 Snapshot JSON'}</Text>
                   </View>
                 </TouchableOpacity>
               </>
