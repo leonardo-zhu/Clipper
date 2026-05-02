@@ -64,6 +64,21 @@ pnpm analyze /path/to/clipper-snapshot.json
 ### 验证
 - `pnpm typecheck` 已通过
 
+## 本轮更新（2026-05-02，Round 4 Tags）
+
+### 已完成
+- 标签基础能力分层：
+  - 预设基础标签 `BASE_TAGS`
+  - AI/规则生成标签仍可继续扩展
+  - 卡片展示时区分基础标签与 AI 标签样式
+- 标签筛选入口：
+  - Home 增加横向筛选条
+  - Library 增加同款筛选条
+  - 两个页面都支持按标签过滤列表
+
+### 验证
+- `pnpm typecheck` 已通过
+
 ### 下一步（Round 3）
 1. 导入流程内联化：不离开 Home 也能直接完成文件导入（可选）
 2. 标签管理：预设基础标签 + AI 标签并存策略与 UI 展示

@@ -9,6 +9,8 @@ export const BASE_TAGS = [
   '周末',
 ] as const;
 
+const BASE_TAG_SET = new Set<string>(BASE_TAGS);
+
 const KEYWORDS: Array<{ tag: string; patterns: RegExp[] }> = [
   { tag: 'Travel', patterns: [/travel/i, /trip/i, /tour/i, /旅游/] },
   { tag: 'Hotel', patterns: [/hotel/i, /resort/i, /民宿/, /酒店/] },
@@ -52,4 +54,18 @@ export function parseTags(tagsJson: string | null | undefined): string[] {
 export function encodeTags(tags: string[]): string {
   const unique = Array.from(new Set(tags.map((t) => t.trim()).filter(Boolean)));
   return JSON.stringify(unique);
+}
+
+export function isBaseTag(tag: string): boolean {
+  return BASE_TAG_SET.has(tag);
+}
+
+export function splitTags(tags: string[]): { base: string[]; ai: string[] } {
+  const base: string[] = [];
+  const ai: string[] = [];
+  for (const tag of tags) {
+    if (isBaseTag(tag)) base.push(tag);
+    else ai.push(tag);
+  }
+  return { base, ai };
 }
